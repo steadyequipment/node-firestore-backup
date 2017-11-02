@@ -1,0 +1,40 @@
+{
+  "name": "firestore-backup",
+  "version": "1.0.0",
+  "description": "Google Firebase Firestore backup tool",
+  "homepage": "https://github.com/steadyequipment/node-firestore-backup",
+  "repository": "https://github.com/steadyequipment/node-firestore-backup.git",
+  "bugs": "https://github.com/steadyequipment/node-firestore-backup/issues",
+  "author": "Ian G <yo.ian.g@gmail.com>",
+  "license": "MIT",
+  "keywords": [
+    "firebase",
+    "firestore",
+    "backup",
+    "cli"
+  ],
+  "main": "./build/index.js",
+  "scripts": {
+    "start": "./bin/firestore-backup.js",
+    "devStart": "babel-node index.js",
+    "clean": "rm -rf build && mkdir build",
+    "build": "babel -d ./build index.js",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "bin": "./bin/firestore-backup.js",
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-flow": "^6.23.0",
+    "colors": "^1.1.2",
+    "commander": "^2.11.0",
+    "firebase-admin": "^5.4.3",
+    "mkdirp": "^0.5.1"
+  },
+  "devDependencies": {
+    "babel-eslint": "7",
+    "eslint": "3.x",
+    "eslint-plugin-flowtype": "^2.39.1",
+    "standard": "^10.0.3"
+  }
+}
