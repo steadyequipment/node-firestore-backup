@@ -1,18 +1,17 @@
 # firestore-backup
----
 A Google Firebase Firestore backup tool.
 
 ## Installation
 Install using [__npm__](https://www.npmjs.com/).
 
 ```sh
-npm install firestore-backup
+npm install -g firestore-backup
 ```
 
  or [__yarn__](https://yarnpkg.com/en/)
 
 ```sh
-yarn add firestore-backup
+yarn global add firestore-backup
 ```
 
 Alternatively download the source.
