@@ -17,7 +17,7 @@ const backupPathParamDescription = 'Path to store backup.'
 const prettyPrintParamKey = 'prettyPrint'
 const prettyPrintParamDescription = 'JSON backups done with pretty-printing.'
 
-commander.version('1.0.0')
+commander.version('1.0.1')
 .option('-a, --' + accountCredentialsPathParamKey + ' <path>', accountCredentialsPathParamDescription)
 .option('-B, --' + backupPathParamKey + ' <path>', backupPathParamDescription)
 .option('-P, --' + prettyPrintParamKey, prettyPrintParamDescription)

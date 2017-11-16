@@ -35,7 +35,7 @@ var backupPathParamDescription = 'Path to store backup.';
 var prettyPrintParamKey = 'prettyPrint';
 var prettyPrintParamDescription = 'JSON backups done with pretty-printing.';
 
-_commander2.default.version('1.0.0').option('-a, --' + accountCredentialsPathParamKey + ' <path>', accountCredentialsPathParamDescription).option('-B, --' + backupPathParamKey + ' <path>', backupPathParamDescription).option('-P, --' + prettyPrintParamKey, prettyPrintParamDescription).parse(_process2.default.argv);
+_commander2.default.version('1.0.1').option('-a, --' + accountCredentialsPathParamKey + ' <path>', accountCredentialsPathParamDescription).option('-B, --' + backupPathParamKey + ' <path>', backupPathParamDescription).option('-P, --' + prettyPrintParamKey, prettyPrintParamDescription).parse(_process2.default.argv);
 
 var accountCredentialsPath = _commander2.default[accountCredentialsPathParamKey];
 if (!accountCredentialsPath) {
