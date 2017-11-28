@@ -1,6 +1,8 @@
 # firestore-backup
 A Google Firebase Firestore backup tool.
 
+[![Known Vulnerabilities](https://snyk.io/test/github/steadyequipment/node-firestore-backup/badge.svg)](https://snyk.io/test/github/steadyequipment/node-firestore-backup)
+
 ## Installation
 Install using [__npm__](https://www.npmjs.com/).
 
