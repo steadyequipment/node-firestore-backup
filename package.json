@@ -13,12 +13,13 @@
     "backup",
     "cli"
   ],
-  "main": "./build/index.js",
+  "main": "./dist/index.js",
   "scripts": {
-    "start": "./bin/firestore-backup.js",
-    "devStart": "babel-node index.js",
-    "clean": "rm -rf build && mkdir build",
-    "build": "babel -d ./build index.js",
+    "bin": "./bin/firestore-backup.js",
+    "clean": "rm -rf dist && mkdir dist",
+    "buildSource": "babel lib --out-dir dist",
+    "buildFlow": "flow-copy-source lib dist",
+    "build": "npm run buildSource; npm run buildFlow",
     "prepublishOnly": "npm run clean && npm run build"
   },
   "bin": "./bin/firestore-backup.js",
@@ -35,6 +36,8 @@
     "babel-eslint": "7",
     "eslint": "3.x",
     "eslint-plugin-flowtype": "^2.39.1",
+    "flow-bin": "^0.61.0",
+    "flow-copy-source": "^1.2.1",
     "standard": "^10.0.3"
   }
 }
