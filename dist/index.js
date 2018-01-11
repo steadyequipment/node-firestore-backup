@@ -4,7 +4,9 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-exports.default = function (accountCredentialsPath, backupPath, prettyPrintJSON) {
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+exports.default = function (accountCredentials, backupPath, prettyPrintJSON) {
   // from: https://hackernoon.com/functional-javascript-resolving-promises-sequentially-7aac18c4431e
   var promiseSerial = function promiseSerial(funcs) {
     return funcs.reduce(function (promise, func) {
@@ -68,16 +70,22 @@ exports.default = function (accountCredentialsPath, backupPath, prettyPrintJSON)
     });
   };
 
-  try {
-    var accountCredentialsBuffer = _fs2.default.readFileSync(accountCredentialsPath);
-
-    var accountCredentials = JSON.parse(accountCredentialsBuffer.toString());
-    _firebaseAdmin2.default.initializeApp({
-      credential: _firebaseAdmin2.default.credential.cert(accountCredentials)
-    });
-  } catch (error) {
-    throw new Error('Unable to read account credential file \'' + accountCredentialsPath + '\': ' + error);
+  var accountCredentialsContents = void 0;
+  if (typeof accountCredentials === 'string') {
+    try {
+      var accountCredentialsBuffer = _fs2.default.readFileSync(accountCredentials);
+      accountCredentialsContents = JSON.parse(accountCredentialsBuffer.toString());
+    } catch (error) {
+      throw new Error('Unable to read account credential file \'' + accountCredentials + '\': ' + error);
+    }
+  } else if ((typeof accountCredentials === 'undefined' ? 'undefined' : _typeof(accountCredentials)) === 'object') {
+    accountCredentialsContents = accountCredentials;
+  } else {
+    throw new Error('No account credentials provided');
   }
+  _firebaseAdmin2.default.initializeApp({
+    credential: _firebaseAdmin2.default.credential.cert(accountCredentialsContents)
+  });
 
   try {
     _mkdirp2.default.sync(backupPath);

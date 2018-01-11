@@ -5,7 +5,7 @@ import Firebase from 'firebase-admin'
 import fs from 'fs'
 import mkdirp from 'mkdirp'
 
-export default function(accountCredentialsPath: string, backupPath: string, prettyPrintJSON: boolean) {
+export default function(accountCredentials: string | Object, backupPath: string, prettyPrintJSON: boolean) {
 // from: https://hackernoon.com/functional-javascript-resolving-promises-sequentially-7aac18c4431e
   const promiseSerial = (funcs) => {
     return funcs.reduce(
@@ -61,27 +61,33 @@ export default function(accountCredentialsPath: string, backupPath: string, pret
     }
 
     return collection.get()
-    .then((snapshots) => {
-      const backupFunctions = []
-      snapshots.forEach((document) => {
-        backupFunctions.push(() => {
-          return backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/')
+        .then((snapshots) => {
+          const backupFunctions = []
+          snapshots.forEach((document) => {
+            backupFunctions.push(() => {
+              return backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/')
+            })
+          })
+          return promiseSerial(backupFunctions)
         })
-      })
-      return promiseSerial(backupFunctions)
-    })
   }
 
-  try {
-    const accountCredentialsBuffer = fs.readFileSync(accountCredentialsPath)
-
-    const accountCredentials = JSON.parse(accountCredentialsBuffer.toString())
-    Firebase.initializeApp({
-      credential: Firebase.credential.cert(accountCredentials)
-    })
-  } catch (error) {
-    throw new Error('Unable to read account credential file \'' + accountCredentialsPath + '\': ' + error)
+  let accountCredentialsContents: Object
+  if (typeof accountCredentials === 'string') {
+    try {
+      const accountCredentialsBuffer = fs.readFileSync(accountCredentials)
+      accountCredentialsContents = JSON.parse(accountCredentialsBuffer.toString())
+    } catch (error) {
+      throw new Error('Unable to read account credential file \'' + accountCredentials + '\': ' + error)
+    }
+  } else if (typeof accountCredentials === 'object') {
+    accountCredentialsContents = accountCredentials
+  } else {
+    throw new Error('No account credentials provided')
   }
+  Firebase.initializeApp({
+    credential: Firebase.credential.cert(accountCredentialsContents)
+  })
 
   try {
     mkdirp.sync(backupPath)
@@ -91,11 +97,11 @@ export default function(accountCredentialsPath: string, backupPath: string, pret
 
   const database = Firebase.firestore()
   database.getCollections()
-  .then((collections) => {
-    return promiseSerial(collections.map((collection) => {
-      return () => {
-        return backupCollection(collection, backupPath + '/' + collection.id, '/')
-      }
-    }))
-  })
+      .then((collections) => {
+        return promiseSerial(collections.map((collection) => {
+          return () => {
+            return backupCollection(collection, backupPath + '/' + collection.id, '/')
+          }
+        }))
+      })
 }

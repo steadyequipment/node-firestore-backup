@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+/* @flow */
+
 var commander = require('commander')
 var colors = require('colors')
 
@@ -16,9 +18,9 @@ var prettyPrintParamKey = 'prettyPrint'
 var prettyPrintParamDescription = 'JSON backups done with pretty-printing.'
 
 commander.version('1.0.1')
-.option('-a, --' + accountCredentialsPathParamKey + ' <path>', accountCredentialsPathParamDescription)
-.option('-B, --' + backupPathParamKey + ' <path>', backupPathParamDescription)
-.option('-P, --' + prettyPrintParamKey, prettyPrintParamDescription)
+  .option('-a, --' + accountCredentialsPathParamKey + ' <path>', accountCredentialsPathParamDescription)
+  .option('-B, --' + backupPathParamKey + ' <path>', backupPathParamDescription)
+  .option('-P, --' + prettyPrintParamKey, prettyPrintParamDescription)
   .parse(process.argv)
 
 const accountCredentialsPath = commander[accountCredentialsPathParamKey]
