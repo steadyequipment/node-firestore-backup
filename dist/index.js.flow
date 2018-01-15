@@ -5,8 +5,8 @@ import Firebase from 'firebase-admin'
 import fs from 'fs'
 import mkdirp from 'mkdirp'
 
-export default function(accountCredentials: string | Object, backupPath: string, prettyPrintJSON: boolean) {
-// from: https://hackernoon.com/functional-javascript-resolving-promises-sequentially-7aac18c4431e
+export default function (accountCredentials: string | Object, backupPath: string, prettyPrintJSON: boolean) {
+  // from: https://hackernoon.com/functional-javascript-resolving-promises-sequentially-7aac18c4431e
   const promiseSerial = (funcs) => {
     return funcs.reduce(
       (promise, func) => {
@@ -43,13 +43,13 @@ export default function(accountCredentials: string | Object, backupPath: string,
     }
 
     return document.ref.getCollections()
-        .then((collections) => {
-          return promiseSerial(collections.map((collection) => {
-            return () => {
-              return backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/')
-            }
-          }))
-        })
+      .then((collections) => {
+        return promiseSerial(collections.map((collection) => {
+          return () => {
+            return backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/')
+          }
+        }))
+      })
   }
 
   const backupCollection = (collection: Object, backupPath: string, logPath: string) => {
@@ -61,26 +61,26 @@ export default function(accountCredentials: string | Object, backupPath: string,
     }
 
     return collection.get()
-        .then((documentSnapshots) => {
-          const backupFunctions = []
-          documentSnapshots.forEach((document) => {
-            backupFunctions.push(() => {
-              return backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/')
-            })
+      .then((documentSnapshots) => {
+        const backupFunctions = []
+        documentSnapshots.forEach((document) => {
+          backupFunctions.push(() => {
+            return backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/')
           })
-          return promiseSerial(backupFunctions)
         })
+        return promiseSerial(backupFunctions)
+      })
   }
 
   const backupRootCollections = (database: Object) => {
     return database.getCollections()
-        .then((collections) => {
-          return promiseSerial(collections.map((collection) => {
-            return () => {
-              return backupCollection(collection, backupPath + '/' + collection.id, '/')
-            }
-          }))
-        })
+      .then((collections) => {
+        return promiseSerial(collections.map((collection) => {
+          return () => {
+            return backupCollection(collection, backupPath + '/' + collection.id, '/')
+          }
+        }))
+      })
   }
 
   let accountCredentialsContents: Object
