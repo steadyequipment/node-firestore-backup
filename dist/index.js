@@ -59,14 +59,24 @@ exports.default = function (accountCredentials, backupPath, prettyPrintJSON) {
       throw new Error('Unable to create backup path for Collection \'' + collection.id + '\': ' + error);
     }
 
-    return collection.get().then(function (snapshots) {
+    return collection.get().then(function (documentSnapshots) {
       var backupFunctions = [];
-      snapshots.forEach(function (document) {
+      documentSnapshots.forEach(function (document) {
         backupFunctions.push(function () {
           return backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/');
         });
       });
       return promiseSerial(backupFunctions);
+    });
+  };
+
+  var backupRootCollections = function backupRootCollections(database) {
+    return database.getCollections().then(function (collections) {
+      return promiseSerial(collections.map(function (collection) {
+        return function () {
+          return backupCollection(collection, backupPath + '/' + collection.id, '/');
+        };
+      }));
     });
   };
 
@@ -83,6 +93,7 @@ exports.default = function (accountCredentials, backupPath, prettyPrintJSON) {
   } else {
     throw new Error('No account credentials provided');
   }
+
   _firebaseAdmin2.default.initializeApp({
     credential: _firebaseAdmin2.default.credential.cert(accountCredentialsContents)
   });
@@ -94,13 +105,7 @@ exports.default = function (accountCredentials, backupPath, prettyPrintJSON) {
   }
 
   var database = _firebaseAdmin2.default.firestore();
-  database.getCollections().then(function (collections) {
-    return promiseSerial(collections.map(function (collection) {
-      return function () {
-        return backupCollection(collection, backupPath + '/' + collection.id, '/');
-      };
-    }));
-  });
+  return backupRootCollections(database);
 };
 
 var _firebaseAdmin = require('firebase-admin');
