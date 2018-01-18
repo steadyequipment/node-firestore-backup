@@ -48,6 +48,9 @@ const prettyPrint = commander[prettyPrintParamKey] !== undefined && commander[pr
 var firestoreBackup = require('../dist/index.js')
 try {
   firestoreBackup.default(accountCredentialsPath, backupPath, prettyPrint)
+      .then(() => {
+        console.log(colors.bold(colors.green('All done 💫')))
+      })
 } catch (error) {
   console.log(colors.red(error))
   process.exit(1)

@@ -154,7 +154,7 @@ export default function (accountCredentials: string | Object, backupPath: string
       }, Promise.resolve([]))
   }
 
-  const backupDocument = (document: Object, backupPath: string, logPath: string): Promise<void> => {
+  const backupDocument = (document: Object, backupPath: string, logPath: string) => {
     console.log('Backing up Document \'' + logPath + document.id + '\'')
     try {
       mkdirp.sync(backupPath)
@@ -192,7 +192,7 @@ export default function (accountCredentials: string | Object, backupPath: string
       })
   }
 
-  const backupCollection = (collection: Object, backupPath: string, logPath: string): Promise<void> => {
+  const backupCollection = (collection: Object, backupPath: string, logPath: string) => {
     console.log('Backing up Collection \'' + logPath + collection.id + '\'')
     try {
       mkdirp.sync(backupPath)
@@ -201,14 +201,25 @@ export default function (accountCredentials: string | Object, backupPath: string
     }
 
     return collection.get()
-      .then((snapshots) => {
+      .then((documentSnapshots) => {
         const backupFunctions = []
-        snapshots.forEach((document) => {
+        documentSnapshots.forEach((document) => {
           backupFunctions.push(() => {
             return backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/')
           })
         })
         return promiseSerial(backupFunctions)
+      })
+  }
+
+  const backupRootCollections = (database: Object) => {
+    return database.getCollections()
+      .then((collections) => {
+        return promiseSerial(collections.map((collection) => {
+          return () => {
+            return backupCollection(collection, backupPath + '/' + collection.id, '/')
+          }
+        }))
       })
   }
 
@@ -237,12 +248,5 @@ export default function (accountCredentials: string | Object, backupPath: string
   }
 
   const database = Firebase.firestore()
-  database.getCollections()
-    .then((collections) => {
-      return promiseSerial(collections.map((collection) => {
-        return () => {
-          return backupCollection(collection, backupPath + '/' + collection.id, '/')
-        }
-      }))
-    })
+  return backupRootCollections(database)
 }
