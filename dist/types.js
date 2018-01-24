@@ -11,7 +11,7 @@ var isString = exports.isString = function isString(value) {
   if (typeof value === 'string' || value instanceof String) {
     return {
       value: value,
-      typeof: 'string'
+      type: 'string'
     };
   }
   return false;
@@ -22,7 +22,7 @@ var isNumber = exports.isNumber = function isNumber(value) {
   if (typeof value === 'number' && isFinite(value)) {
     return {
       value: value,
-      typeof: 'number'
+      type: 'number'
     };
   }
   return false;
@@ -33,7 +33,7 @@ var isArray = exports.isArray = function isArray(value) {
   if (value && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && value.constructor === Array) {
     return {
       value: value,
-      typeof: 'array'
+      type: 'array'
     };
   }
   return false;
@@ -44,7 +44,7 @@ var isObject = exports.isObject = function isObject(value) {
   if (value && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && value.constructor === Object) {
     return {
       value: value,
-      typeof: 'object'
+      type: 'object'
     };
   }
   return false;
@@ -55,7 +55,7 @@ var isNull = exports.isNull = function isNull(value) {
   if (value === null) {
     return {
       value: value,
-      typeof: 'null'
+      type: 'null'
     };
   }
   return false;
@@ -66,7 +66,7 @@ var isUndefined = exports.isUndefined = function isUndefined(value) {
   if (typeof value === 'undefined') {
     return {
       value: value,
-      typeof: 'undefined'
+      type: 'undefined'
     };
   }
   return false;
@@ -77,7 +77,7 @@ var isBoolean = exports.isBoolean = function isBoolean(value) {
   if (typeof value === 'boolean') {
     return {
       value: value,
-      typeof: 'boolean'
+      type: 'boolean'
     };
   }
   return false;
@@ -88,7 +88,7 @@ var isDate = exports.isDate = function isDate(value) {
   if (value instanceof Date) {
     return {
       value: value,
-      typeof: 'date'
+      type: 'date'
     };
   }
   return false;
