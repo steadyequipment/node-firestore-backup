@@ -99,3 +99,13 @@ var isDate = exports.isDate = function isDate(value) {
   }
   return false;
 };
+
+var isReference = exports.isReference = function isReference(value) {
+  if (value && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && _typeof(value._firestore) === 'object' && _typeof(value._referencePath) === 'object') {
+    return {
+      value: value,
+      type: 'reference'
+    };
+  }
+  return false;
+};

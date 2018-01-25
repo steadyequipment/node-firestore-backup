@@ -22,18 +22,25 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 var constructReferenceUrl = exports.constructReferenceUrl = function constructReferenceUrl(reference) {
-  var referencePath = '';
-  Object.keys(reference).forEach(function (key) {
-    Object.keys(reference[key]).forEach(function (subKey) {
-      if (subKey === 'segments') {
-        var pathArray = reference[key][subKey];
-        pathArray.forEach(function (pathKey) {
-          referencePath = referencePath ? referencePath + '/' + pathKey : pathKey;
-        });
-      }
-    });
-  });
-  return referencePath ? { value: referencePath, type: 'reference' } : { value: reference, type: 'unknown' };
+  var referenceSegments = reference._referencePath.segments;
+  var referencePath = void 0;
+  if (Array.isArray(referenceSegments)) {
+    referencePath = referenceSegments.join('/');
+  } else if (typeof referenceSegments === 'string') {
+    referencePath = referenceSegments;
+  }
+
+  if (referencePath) {
+    return {
+      value: referencePath,
+      type: 'reference'
+    };
+  } else {
+    return {
+      value: reference,
+      type: 'unknown'
+    };
+  }
 };
 
 var testValidDocumentValue = function testValidDocumentValue(key, documentData, validators) {
@@ -81,8 +88,16 @@ var constructDocumentValue = exports.constructDocumentValue = function construct
       if (_documentValue) {
         documentDataToStore = Object.assign({}, documentDataToStore, _defineProperty({}, key, _documentValue));
       } else {
+        var validValue = (0, _types.isReference)(documentData[key]);
+        if (validValue) {
+          documentDataToStore = Object.assign({}, documentDataToStore, _defineProperty({}, key, constructReferenceUrl(documentData[key])));
+        } else {
+          documentDataToStore = {
+            value: documentData[key],
+            type: 'unknown'
+          };
+        }
         // TODO: stronger validation that we have a reference rather than being our fallback
-        documentDataToStore = Object.assign({}, documentDataToStore, _defineProperty({}, key, constructReferenceUrl(documentData[key])));
       }
     }
   });

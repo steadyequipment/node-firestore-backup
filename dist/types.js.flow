@@ -100,3 +100,13 @@ export const isDate = (value: any): ValidationResult => {
   }
   return false
 }
+
+export const isReference = (value: any): ValidationResult => {
+  if (value && typeof value === 'object' && typeof value._firestore === 'object' && typeof value._referencePath === 'object') {
+    return {
+      value,
+      type: 'reference'
+    }
+  }
+  return false
+}
