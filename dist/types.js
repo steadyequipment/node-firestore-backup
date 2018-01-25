@@ -30,7 +30,7 @@ var isNumber = exports.isNumber = function isNumber(value) {
 
 // Returns if a value is an array
 var isArray = exports.isArray = function isArray(value) {
-  if (value && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && value.constructor === Array) {
+  if (Array.isArray(value)) {
     return {
       value: value,
       type: 'array'

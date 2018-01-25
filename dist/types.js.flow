@@ -31,7 +31,7 @@ export const isNumber = (value: any): ValidationResult => {
 
 // Returns if a value is an array
 export const isArray = (value: any): ValidationResult => {
-  if (value && typeof value === 'object' && value.constructor === Array) {
+  if (Array.isArray(value)) {
     return {
       value,
       type: 'array'
