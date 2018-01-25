@@ -16,7 +16,7 @@ export const constructReferenceUrl = (reference: Object) => {
       }
     })
   })
-  return referencePath ? { value: referencePath, typeof: 'reference' } : referencePath
+  return referencePath ? { value: referencePath, type: 'reference' } : { value: reference, type: 'unknown' }
 }
 
 export const constructDocumentValue = (documentDataToStore: Object = {}, keys: Array<string>, documentData: Object) => {
@@ -38,10 +38,10 @@ export const constructDocumentValue = (documentDataToStore: Object = {}, keys: A
     } else if (isNumber(documentData[key])) {
       documentDataToStore = Object.assign({}, documentDataToStore, { [key]: isNumber(documentData[key]) })
     } else if (isArray(documentData[key])) {
-      documentDataToStore[key] = Object.assign({}, documentDataToStore[key], { typeof: 'array' })
+      documentDataToStore[key] = Object.assign({}, documentDataToStore[key], { type: 'array' })
       documentDataToStore[key] = Object.assign({}, documentDataToStore[key], constructDocumentValue({}, Object.keys(documentData[key]), documentData[key]))
     } else if (isObject(documentData[key])) {
-      documentDataToStore[key] = Object.assign({}, documentDataToStore[key], { typeof: 'object' })
+      documentDataToStore[key] = Object.assign({}, documentDataToStore[key], { type: 'object' })
       documentDataToStore[key] = Object.assign({}, documentDataToStore[key], constructDocumentValue({}, Object.keys(documentData[key]), documentData[key]))
     } else if (isNull(documentData[key])) {
       documentDataToStore = Object.assign({}, documentDataToStore, { [key]: isNull(documentData[key]) })

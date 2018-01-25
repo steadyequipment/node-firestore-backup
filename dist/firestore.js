@@ -33,7 +33,7 @@ var constructReferenceUrl = exports.constructReferenceUrl = function constructRe
       }
     });
   });
-  return referencePath ? { value: referencePath, typeof: 'reference' } : referencePath;
+  return referencePath ? { value: referencePath, type: 'reference' } : { value: reference, type: 'unknown' };
 };
 
 var constructDocumentValue = exports.constructDocumentValue = function constructDocumentValue() {
@@ -59,10 +59,10 @@ var constructDocumentValue = exports.constructDocumentValue = function construct
     } else if ((0, _types.isNumber)(documentData[key])) {
       documentDataToStore = Object.assign({}, documentDataToStore, _defineProperty({}, key, (0, _types.isNumber)(documentData[key])));
     } else if ((0, _types.isArray)(documentData[key])) {
-      documentDataToStore[key] = Object.assign({}, documentDataToStore[key], { typeof: 'array' });
+      documentDataToStore[key] = Object.assign({}, documentDataToStore[key], { type: 'array' });
       documentDataToStore[key] = Object.assign({}, documentDataToStore[key], constructDocumentValue({}, Object.keys(documentData[key]), documentData[key]));
     } else if ((0, _types.isObject)(documentData[key])) {
-      documentDataToStore[key] = Object.assign({}, documentDataToStore[key], { typeof: 'object' });
+      documentDataToStore[key] = Object.assign({}, documentDataToStore[key], { type: 'object' });
       documentDataToStore[key] = Object.assign({}, documentDataToStore[key], constructDocumentValue({}, Object.keys(documentData[key]), documentData[key]));
     } else if ((0, _types.isNull)(documentData[key])) {
       documentDataToStore = Object.assign({}, documentDataToStore, _defineProperty({}, key, (0, _types.isNull)(documentData[key])));
