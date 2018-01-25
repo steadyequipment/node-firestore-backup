@@ -18,6 +18,8 @@ var isString = exports.isString = function isString(value) {
 };
 
 // Returns if a value is really a number
+
+
 var isNumber = exports.isNumber = function isNumber(value) {
   if (typeof value === 'number' && isFinite(value)) {
     return {
@@ -39,15 +41,19 @@ var isArray = exports.isArray = function isArray(value) {
   return false;
 };
 
-// Returns if a value is an object
-var isObject = exports.isObject = function isObject(value) {
-  if (value && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && value.constructor === Object) {
+var isObjectOfType = function isObjectOfType(value, type, typeName) {
+  if (value && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && value.constructor === type) {
     return {
       value: value,
-      type: 'object'
+      type: typeName
     };
   }
   return false;
+};
+
+// Returns if a value is an object
+var isObject = exports.isObject = function isObject(value) {
+  return isObjectOfType(value, Object, 'object');
 };
 
 // Returns if a value is null

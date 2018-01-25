@@ -36,6 +36,23 @@ var constructReferenceUrl = exports.constructReferenceUrl = function constructRe
   return referencePath ? { value: referencePath, type: 'reference' } : { value: reference, type: 'unknown' };
 };
 
+var testValidDocumentValue = function testValidDocumentValue(key, documentData, validators) {
+  var validValue = void 0;
+
+  for (var index = 0; index < validators.length; index++) {
+    var testValidValue = validators[index](documentData[key]);
+    if (typeof testValidValue !== 'boolean') {
+      validValue = testValidValue;
+      break;
+    }
+  }
+
+  if (validValue) {
+    return validValue;
+  }
+  return false;
+};
+
 var constructDocumentValue = exports.constructDocumentValue = function constructDocumentValue() {
   var documentDataToStore = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   var keys = arguments[1];
@@ -51,25 +68,22 @@ var constructDocumentValue = exports.constructDocumentValue = function construct
     // Geographical Point - todo
     // Map = todo
     // Null - null
-    // String - string
-    if ((0, _types.isBoolean)(documentData[key])) {
-      documentDataToStore = Object.assign({}, documentDataToStore, _defineProperty({}, key, (0, _types.isBoolean)(documentData[key])));
-    } else if ((0, _types.isDate)(documentData[key])) {
-      documentDataToStore = Object.assign({}, documentDataToStore, _defineProperty({}, key, (0, _types.isDate)(documentData[key])));
-    } else if ((0, _types.isNumber)(documentData[key])) {
-      documentDataToStore = Object.assign({}, documentDataToStore, _defineProperty({}, key, (0, _types.isNumber)(documentData[key])));
-    } else if ((0, _types.isArray)(documentData[key])) {
-      documentDataToStore[key] = Object.assign({}, documentDataToStore[key], { type: 'array' });
+    var objectTypeValidators = [_types.isArray, _types.isObject];
+
+    var documentValue = testValidDocumentValue(key, documentData, objectTypeValidators);
+    if (documentValue) {
+      documentDataToStore[key] = Object.assign({}, documentDataToStore[key], { type: documentValue.type });
       documentDataToStore[key] = Object.assign({}, documentDataToStore[key], constructDocumentValue({}, Object.keys(documentData[key]), documentData[key]));
-    } else if ((0, _types.isObject)(documentData[key])) {
-      documentDataToStore[key] = Object.assign({}, documentDataToStore[key], { type: 'object' });
-      documentDataToStore[key] = Object.assign({}, documentDataToStore[key], constructDocumentValue({}, Object.keys(documentData[key]), documentData[key]));
-    } else if ((0, _types.isNull)(documentData[key])) {
-      documentDataToStore = Object.assign({}, documentDataToStore, _defineProperty({}, key, (0, _types.isNull)(documentData[key])));
-    } else if ((0, _types.isString)(documentData[key])) {
-      documentDataToStore = Object.assign({}, documentDataToStore, _defineProperty({}, key, (0, _types.isString)(documentData[key])));
     } else {
-      documentDataToStore = Object.assign({}, documentDataToStore, _defineProperty({}, key, constructReferenceUrl(documentData[key])));
+      var basicTypeValidators = [_types.isBoolean, _types.isDate, _types.isNumber, _types.isNull, _types.isString];
+
+      var _documentValue = testValidDocumentValue(key, documentData, basicTypeValidators);
+      if (_documentValue) {
+        documentDataToStore = Object.assign({}, documentDataToStore, _defineProperty({}, key, _documentValue));
+      } else {
+        // TODO: stronger validation that we have a reference rather than being our fallback
+        documentDataToStore = Object.assign({}, documentDataToStore, _defineProperty({}, key, constructReferenceUrl(documentData[key])));
+      }
     }
   });
   return documentDataToStore;
