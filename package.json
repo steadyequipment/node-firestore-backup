@@ -1,6 +1,6 @@
 {
   "name": "firestore-backup",
-  "version": "1.2.1",
+  "version": "2.0.0",
   "description": "Google Firebase Firestore backup tool",
   "homepage": "https://github.com/steadyequipment/node-firestore-backup",
   "repository": "https://github.com/steadyequipment/node-firestore-backup.git",
