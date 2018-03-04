@@ -1,8 +1,10 @@
 /* @flow */
 
+import { getSegments } from './utility'
+
 export type ValueDescription = {
-    value: any,
-    type: string
+  value: any,
+  type: string
 }
 
 export type ValidationResult = ValueDescription | false;
@@ -42,7 +44,7 @@ export const isArray = (value: any): ValidationResult => {
   return false
 }
 
-const isObjectOfType = (value: any, type: Class<any>, typeName: string): ValidationResult => {
+const isObjectOfType = (value: any, type: Class < any > , typeName: string): ValidationResult => {
   if (value && typeof value === 'object' && value.constructor === type) {
     return {
       value,
@@ -106,6 +108,34 @@ export const isReference = (value: any): ValidationResult => {
     return {
       value,
       type: 'reference'
+    }
+  }
+  return false
+}
+
+/**
+ * Indicates whether this ResourcePath points to a document.
+ */
+export const isDocumentPath = (value: string): ValidationResult => {
+  const segments = getSegments(value)
+  if (segments.length > 0 && segments.length % 2 === 0) {
+    return {
+      value,
+      type: 'DocumentPath'
+    }
+  }
+  return false
+}
+
+/**
+ * Indicates whether this ResourcePath points to a collection.
+ */
+export const isCollectionPath = (value: string): ValidationResult => {
+  const segments = getSegments(value)
+  if (segments.length % 2 === 1) {
+    return {
+      value,
+      type: 'CollectionPath'
     }
   }
   return false

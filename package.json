@@ -16,6 +16,8 @@
   "main": "./dist/index.js",
   "scripts": {
     "bin": "./bin/firestore-backup.js",
+    "test": "./bin/firestore-backup.js --accountCredentials $GOOGLE_APPLICATION_CREDENTIALS --backupPath ./backup --prettyPrint",
+    "pretest": "npm run build",
     "clean": "rm -rf dist && mkdir dist",
     "buildSource": "babel lib --out-dir dist",
     "buildFlow": "flow-copy-source lib dist",

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -13,4 +13,12 @@ var promiseSerial = exports.promiseSerial = function promiseSerial(funcs) {
       });
     });
   }, Promise.resolve([]));
+};
+
+var getSegments = exports.getSegments = function getSegments(relativePath) {
+  // We may have an empty segment at the beginning or end if they had a
+  // leading or trailing slash (which we allow).
+  return relativePath.split('/').filter(function (segment) {
+    return segment.length > 0;
+  });
 };

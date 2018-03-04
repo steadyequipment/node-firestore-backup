@@ -10,3 +10,9 @@ export const promiseSerial = (funcs) => {
       })
     }, Promise.resolve([]))
 }
+
+export const getSegments = (relativePath) => {
+  // We may have an empty segment at the beginning or end if they had a
+  // leading or trailing slash (which we allow).
+  return relativePath.split('/').filter(segment => segment.length > 0);
+}

@@ -17,10 +17,14 @@ var backupPathParamDescription = 'Path to store backup.'
 var prettyPrintParamKey = 'prettyPrint'
 var prettyPrintParamDescription = 'JSON backups done with pretty-printing.'
 
+var databaseStartPathParamKey = 'databaseStartPath'
+var databaseStartPathParamDescription = 'The database collection or document path to begin backup.'
+
 commander.version('1.0.1')
   .option('-a, --' + accountCredentialsPathParamKey + ' <path>', accountCredentialsPathParamDescription)
   .option('-B, --' + backupPathParamKey + ' <path>', backupPathParamDescription)
   .option('-P, --' + prettyPrintParamKey, prettyPrintParamDescription)
+  .option('-S, --' + databaseStartPathParamKey + ' <path>', databaseStartPathParamDescription)
   .parse(process.argv)
 
 const accountCredentialsPath = commander[accountCredentialsPathParamKey]
@@ -45,12 +49,14 @@ if (!backupPath) {
 
 const prettyPrint = commander[prettyPrintParamKey] !== undefined && commander[prettyPrintParamKey] !== null
 
+const databaseStartPath = (commander[databaseStartPathParamKey] || '').replace(/^\//, '')
+
 var firestoreBackup = require('../dist/index.js')
 try {
-  firestoreBackup.default(accountCredentialsPath, backupPath, prettyPrint)
-      .then(() => {
-        console.log(colors.bold(colors.green('All done 💫')))
-      })
+  firestoreBackup.default(accountCredentialsPath, databaseStartPath, backupPath, prettyPrint)
+    .then(() => {
+      console.log(colors.bold(colors.green('All done 💫')))
+    })
 } catch (error) {
   console.log(colors.red(error))
   process.exit(1)
