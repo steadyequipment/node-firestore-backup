@@ -61,16 +61,16 @@ var firestoreBackup = require('../dist/index.js')
 try {
   console.time('backuptime')
   firestoreBackup.default({
-      accountCredentials: accountCredentialsPath,
-      databaseStartPath,
-      backupPath,
-      prettyPrint,
-      requestCountLimit
-    })
-    .then(() => {
-      console.log(colors.bold(colors.green('All done 💫')))
-      console.timeEnd('backuptime')
-    })
+    accountCredentials: accountCredentialsPath,
+    databaseStartPath,
+    backupPath,
+    prettyPrint,
+    requestCountLimit
+  })
+  .then(() => {
+    console.log(colors.bold(colors.green('All done 💫')))
+    console.timeEnd('backuptime')
+  })
 } catch (error) {
   console.log(colors.red(error))
   process.exit(1)
