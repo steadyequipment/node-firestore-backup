@@ -67,10 +67,10 @@ try {
     prettyPrint,
     requestCountLimit
   })
-  .then(() => {
-    console.log(colors.bold(colors.green('All done 💫')))
-    console.timeEnd('backuptime')
-  })
+    .then(() => {
+      console.log(colors.bold(colors.green('All done 💫')))
+      console.timeEnd('backuptime')
+    })
 } catch (error) {
   console.log(colors.red(error))
   process.exit(1)
