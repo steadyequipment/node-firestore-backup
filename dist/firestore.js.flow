@@ -1,15 +1,33 @@
 /* @flow */
 
-import { isString, isNull, isObject, isArray, isNumber, isDate, isBoolean, isReference } from './types'
-import type { ValueDescription, Validator } from './types'
+import {
+  isString,
+  isNull,
+  isObject,
+  isArray,
+  isNumber,
+  isDate,
+  isBoolean,
+  isReference,
+  isDocumentPath,
+  isCollectionPath
+} from './types'
+import type { ValueDescription, Validator, BackupOptions } from './types'
 import { promiseSerial } from './utility'
 
 import fs from 'fs'
 import mkdirp from 'mkdirp'
+import Promise from 'bluebird'
+
+const backupDocumentConcurrency = 3; // 3 is the max before diminishing returns
+const defaultBackupOptions = {
+  databaseStartPath: '',
+  requestCountLimit: 1
+}
 
 export const constructReferenceUrl = (reference: Object): ValueDescription => {
   const referenceSegments = reference._referencePath.segments
-  let referencePath: ?string
+  let referencePath: ? string
   if (Array.isArray(referenceSegments)) {
     referencePath = referenceSegments.join('/')
   } else if (typeof referenceSegments === 'string') {
@@ -30,9 +48,9 @@ export const constructReferenceUrl = (reference: Object): ValueDescription => {
 }
 
 const testValidDocumentValue = (
-    key: string,
-    documentData: Object,
-    validators: Array<Validator>) => {
+  key: string,
+  documentData: Object,
+  validators: Array<Validator>) => {
   let validValue: ?ValueDescription
 
   for (let index = 0; index < validators.length; index++) {
@@ -81,25 +99,29 @@ export const constructDocumentValue = (documentDataToStore: Object = {}, keys: A
 
       const documentValue = testValidDocumentValue(key, documentData, basicTypeValidators)
       if (documentValue) {
-        documentDataToStore = Object.assign({}, documentDataToStore, { [key]: documentValue })
+        documentDataToStore = Object.assign({}, documentDataToStore, {
+          [key]: documentValue
+        })
       } else {
         const validValue = isReference(documentData[key])
         if (validValue) {
-          documentDataToStore = Object.assign({}, documentDataToStore, { [key]: constructReferenceUrl(documentData[key]) })
+          documentDataToStore = Object.assign({}, documentDataToStore, {
+            [key]: constructReferenceUrl(documentData[key])
+          })
         } else {
           documentDataToStore = {
             value: documentData[key],
             type: 'unknown'
           }
         }
-          // TODO: stronger validation that we have a reference rather than being our fallback
+        // TODO: stronger validation that we have a reference rather than being our fallback
       }
     }
   })
   return documentDataToStore
 }
 
-export const backupDocument = (document: Object, backupPath: string, logPath: string, prettyPrintJSON: boolean) => {
+/*export const backupDocument = (document: Object, backupPath: string, logPath: string, prettyPrintJSON: boolean) => {
   console.log('Backing up Document \'' + logPath + document.id + '\'')
   try {
     mkdirp.sync(backupPath)
@@ -127,17 +149,13 @@ export const backupDocument = (document: Object, backupPath: string, logPath: st
     throw new Error('Unable to write Document \'' + document.id + '\': ' + error)
   }
 
-  return document.ref.getCollections()
-    .then((collections) => {
-      return promiseSerial(collections.map((collection) => {
-        return () => {
-          return backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/', prettyPrintJSON)
-        }
-      }))
-    })
-}
+  return Promise.resolve(document.ref.getCollections())
+    .map((collection) => {
+      return backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/', prettyPrintJSON)
+    }, { concurrency: backupDocumentConcurrency })
+}*/
 
-export const backupCollection = (collection: Object, backupPath: string, logPath: string, prettyPrintJSON: boolean) => {
+/*export const backupCollection = (collection: Object, backupPath: string, logPath: string, prettyPrintJSON: boolean) => {
   console.log('Backing up Collection \'' + logPath + collection.id + '\'')
   try {
     mkdirp.sync(backupPath)
@@ -145,19 +163,14 @@ export const backupCollection = (collection: Object, backupPath: string, logPath
     throw new Error('Unable to create backup path for Collection \'' + collection.id + '\': ' + error)
   }
 
-  return collection.get()
-    .then((documentSnapshots) => {
-      const backupFunctions = []
-      documentSnapshots.forEach((document) => {
-        backupFunctions.push(() => {
-          return backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/', prettyPrintJSON)
-        })
-      })
-      return promiseSerial(backupFunctions)
-    })
-}
+  return Promise.resolve(collection.get())
+    .then((documentSnapshots) => documentSnapshots.docs)
+    .map((document) => {
+      return backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/', prettyPrintJSON)
+    }, { concurrency: backupCollectionConcurrency })
+}*/
 
-export const backupRootCollections = (database: Object, backupPath: string, prettyPrintJSON: boolean) => {
+/*export const backupRootCollections = (database: Object, backupPath: string, prettyPrintJSON: boolean) => {
   return database.getCollections()
     .then((collections) => {
       return promiseSerial(collections.map((collection) => {
@@ -166,4 +179,94 @@ export const backupRootCollections = (database: Object, backupPath: string, pret
         }
       }))
     })
+}*/
+
+export class FirestoreBackup {
+  options: BackupOptions;
+
+  constructor(options: BackupOptions) {
+    this.options = Object.assign({}, defaultBackupOptions, options)
+    Object.assign(this, this.options)
+
+    // backupCollectionConcurrency = this.requestCountLimit
+  }
+
+  backup() {
+    if (isDocumentPath(this.databaseStartPath)) {
+      const databaseDocument = this.database.doc(this.databaseStartPath)
+      return databaseDocument.get()
+        .then((document) => {
+          return this.backupDocument(document, this.backupPath + '/' + document.ref.path, '/', this.prettyPrintJSON)
+        })
+    }
+
+    if (isCollectionPath(this.databaseStartPath)) {
+      const databaseCollection = this.database.collection(this.databaseStartPath)
+      return this.backupCollection(databaseCollection, this.backupPath + '/' + databaseCollection.path, '/', this.prettyPrintJSON)
+    }
+
+    return this.backupRootCollections()
+  }
+
+  backupRootCollections() {
+    return this.database.getCollections()
+      .then((collections) => {
+        return promiseSerial(collections.map((collection) => {
+          return () => {
+            return this.backupCollection(collection, this.backupPath + '/' + collection.id, '/')
+          }
+        }))
+      })
+  }
+
+  backupCollection(collection: Object, backupPath: string, logPath: string) {
+    // return backupCollection(collection, backupPath, logPath, this.prettyPrintJSON)
+    console.log('Backing up Collection \'' + logPath + collection.id + '\'')
+    try {
+      mkdirp.sync(backupPath)
+    } catch (error) {
+      throw new Error('Unable to create backup path for Collection \'' + collection.id + '\': ' + error)
+    }
+
+    return Promise.resolve(collection.get())
+      .then((documentSnapshots) => documentSnapshots.docs)
+      .map((document) => {
+        return this.backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/', this.prettyPrintJSON)
+      }, { concurrency: this.requestCountLimit })
+  }
+
+  backupDocument(document: Object, backupPath: string, logPath: string) {
+    // return backupDocument(document, backupPath, logPath, this.prettyPrintJSON)
+    console.log('Backing up Document \'' + logPath + document.id + '\'')
+    try {
+      mkdirp.sync(backupPath)
+    } catch (error) {
+      throw new Error('Unable to create backup path for Document \'' + document.id + '\': ' + error)
+    }
+
+    let fileContents: string
+    try {
+      const documentData = document.data()
+      const keys = Object.keys(documentData)
+      var documentDataToStore = {}
+      documentDataToStore = Object.assign({}, constructDocumentValue(documentDataToStore, keys, documentData))
+      if (this.prettyPrintJSON === true) {
+        fileContents = JSON.stringify(documentDataToStore, null, 2)
+      } else {
+        fileContents = JSON.stringify(documentDataToStore)
+      }
+    } catch (error) {
+      throw new Error('Unable to serialize Document \'' + document.id + '\': ' + error)
+    }
+    try {
+      fs.writeFileSync(backupPath + '/' + document.id + '.json', fileContents)
+    } catch (error) {
+      throw new Error('Unable to write Document \'' + document.id + '\': ' + error)
+    }
+
+    return Promise.resolve(document.ref.getCollections())
+      .map((collection) => {
+        return this.backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/', this.prettyPrintJSON)
+      }, { concurrency: backupDocumentConcurrency })
+  }
 }

@@ -11,6 +11,15 @@ export type ValidationResult = ValueDescription | false;
 
 export type Validator = (value: any) => ValidationResult;
 
+export type BackupOptions = {
+  accountCredentials: string | Object,
+  database: Object,
+  backupPath: string,
+  databaseStartPath: string,
+  prettyPrintJSON: boolean,
+  requestCountLimit: number
+}
+
 // Returns if a value is a string
 export const isString = (value: any): ValidationResult => {
   if (typeof value === 'string' || value instanceof String) {
@@ -44,7 +53,7 @@ export const isArray = (value: any): ValidationResult => {
   return false
 }
 
-const isObjectOfType = (value: any, type: Class < any > , typeName: string): ValidationResult => {
+const isObjectOfType = (value: any, type: Class<any>, typeName: string): ValidationResult => {
   if (value && typeof value === 'object' && value.constructor === type) {
     return {
       value,

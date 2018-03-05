@@ -15,6 +15,12 @@ var promiseSerial = exports.promiseSerial = function promiseSerial(funcs) {
   }, Promise.resolve([]));
 };
 
+/**
+ * Splits a string into path segments, using slashes as separators.
+ *
+ * @param {string} relativePath - The path to split.
+ * @returns {Array.<string>} - The split path segments.
+ */
 var getSegments = exports.getSegments = function getSegments(relativePath) {
   // We may have an empty segment at the beginning or end if they had a
   // leading or trailing slash (which we allow).
