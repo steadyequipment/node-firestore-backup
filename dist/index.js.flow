@@ -5,9 +5,8 @@ import Firebase from 'firebase-admin'
 import fs from 'fs'
 import mkdirp from 'mkdirp'
 
-// import { backupRootCollections, backupCollection, backupDocument } from './firestore'
 import { FirestoreBackup } from './firestore'
-import { isDocumentPath, isCollectionPath, BackupOptions } from './types'
+import type { BackupOptions } from './types'
 
 export default function(_options: BackupOptions) {
   const options = Object.assign({}, _options, {databaseStartPath: ''})
@@ -39,18 +38,4 @@ export default function(_options: BackupOptions) {
   options.database = Firebase.firestore()
   const backupClient = new FirestoreBackup(options)
   return backupClient.backup()
-
-  /*if (isDocumentPath(options.databaseStartPath)) {
-    const databaseDocument = options.database.doc(options.databaseStartPath)
-    return databaseDocument.get()
-      .then((document) => {
-        return backupClient.backupDocument(document, options.backupPath + '/' + document.ref.path, '/', options.prettyPrintJSON)
-      })
-  }
-  if (isCollectionPath(options.databaseStartPath)) {
-    const databaseCollection = options.database.collection(options.databaseStartPath)
-    return backupClient.backupCollection(databaseCollection, options.backupPath + '/' + databaseCollection.path, '/', options.prettyPrintJSON)
-  }
-
-  return backupClient.backupRootCollections()*/
 }

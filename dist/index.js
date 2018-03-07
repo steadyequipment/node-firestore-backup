@@ -6,9 +6,6 @@ Object.defineProperty(exports, "__esModule", {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-// import { backupRootCollections, backupCollection, backupDocument } from './firestore'
-
-
 exports.default = function (_options) {
   var options = Object.assign({}, _options, { databaseStartPath: '' });
 
@@ -39,19 +36,6 @@ exports.default = function (_options) {
   options.database = _firebaseAdmin2.default.firestore();
   var backupClient = new _firestore.FirestoreBackup(options);
   return backupClient.backup();
-
-  /*if (isDocumentPath(options.databaseStartPath)) {
-    const databaseDocument = options.database.doc(options.databaseStartPath)
-    return databaseDocument.get()
-      .then((document) => {
-        return backupClient.backupDocument(document, options.backupPath + '/' + document.ref.path, '/', options.prettyPrintJSON)
-      })
-  }
-  if (isCollectionPath(options.databaseStartPath)) {
-    const databaseCollection = options.database.collection(options.databaseStartPath)
-    return backupClient.backupCollection(databaseCollection, options.backupPath + '/' + databaseCollection.path, '/', options.prettyPrintJSON)
-  }
-   return backupClient.backupRootCollections()*/
 };
 
 var _firebaseAdmin = require('firebase-admin');
@@ -67,7 +51,5 @@ var _mkdirp = require('mkdirp');
 var _mkdirp2 = _interopRequireDefault(_mkdirp);
 
 var _firestore = require('./firestore');
-
-var _types = require('./types');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }

@@ -11,14 +11,14 @@ export type ValidationResult = ValueDescription | false;
 
 export type Validator = (value: any) => ValidationResult;
 
-export type BackupOptions = {
+export type BackupOptions = {|
   accountCredentials: string | Object,
   database: Object,
   backupPath: string,
   databaseStartPath: string,
   prettyPrintJSON: boolean,
   requestCountLimit: number
-}
+|}
 
 // Returns if a value is a string
 export const isString = (value: any): ValidationResult => {
