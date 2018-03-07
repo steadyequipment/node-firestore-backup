@@ -51,7 +51,7 @@ if (!backupPath) {
   process.exit(1)
 }
 
-const prettyPrint = commander[prettyPrintParamKey] !== undefined && commander[prettyPrintParamKey] !== null
+const prettyPrintJSON = commander[prettyPrintParamKey] !== undefined && commander[prettyPrintParamKey] !== null
 
 const databaseStartPath = (commander[databaseStartPathParamKey] || '').replace(/^\//, '')
 
@@ -64,7 +64,7 @@ try {
     accountCredentials: accountCredentialsPath,
     databaseStartPath,
     backupPath,
-    prettyPrint,
+    prettyPrintJSON,
     requestCountLimit
   })
     .then(() => {
