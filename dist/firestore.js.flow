@@ -19,15 +19,9 @@ import fs from 'fs'
 import mkdirp from 'mkdirp'
 import Promise from 'bluebird'
 
-const backupDocumentConcurrency = 3; // 3 is the max before diminishing returns
-const defaultBackupOptions = {
-  databaseStartPath: '',
-  requestCountLimit: 1
-}
-
 export const constructReferenceUrl = (reference: Object): ValueDescription => {
   const referenceSegments = reference._referencePath.segments
-  let referencePath: ? string
+  let referencePath: ?string
   if (Array.isArray(referenceSegments)) {
     referencePath = referenceSegments.join('/')
   } else if (typeof referenceSegments === 'string') {
@@ -121,106 +115,53 @@ export const constructDocumentValue = (documentDataToStore: Object = {}, keys: A
   return documentDataToStore
 }
 
-/*export const backupDocument = (document: Object, backupPath: string, logPath: string, prettyPrintJSON: boolean) => {
-  console.log('Backing up Document \'' + logPath + document.id + '\'')
-  try {
-    mkdirp.sync(backupPath)
-  } catch (error) {
-    throw new Error('Unable to create backup path for Document \'' + document.id + '\': ' + error)
-  }
-
-  let fileContents: string
-  try {
-    const documentData = document.data()
-    const keys = Object.keys(documentData)
-    var documentDataToStore = {}
-    documentDataToStore = Object.assign({}, constructDocumentValue(documentDataToStore, keys, documentData))
-    if (prettyPrintJSON === true) {
-      fileContents = JSON.stringify(documentDataToStore, null, 2)
-    } else {
-      fileContents = JSON.stringify(documentDataToStore)
-    }
-  } catch (error) {
-    throw new Error('Unable to serialize Document \'' + document.id + '\': ' + error)
-  }
-  try {
-    fs.writeFileSync(backupPath + '/' + document.id + '.json', fileContents)
-  } catch (error) {
-    throw new Error('Unable to write Document \'' + document.id + '\': ' + error)
-  }
-
-  return Promise.resolve(document.ref.getCollections())
-    .map((collection) => {
-      return backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/', prettyPrintJSON)
-    }, { concurrency: backupDocumentConcurrency })
-}*/
-
-/*export const backupCollection = (collection: Object, backupPath: string, logPath: string, prettyPrintJSON: boolean) => {
-  console.log('Backing up Collection \'' + logPath + collection.id + '\'')
-  try {
-    mkdirp.sync(backupPath)
-  } catch (error) {
-    throw new Error('Unable to create backup path for Collection \'' + collection.id + '\': ' + error)
-  }
-
-  return Promise.resolve(collection.get())
-    .then((documentSnapshots) => documentSnapshots.docs)
-    .map((document) => {
-      return backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/', prettyPrintJSON)
-    }, { concurrency: backupCollectionConcurrency })
-}*/
-
-/*export const backupRootCollections = (database: Object, backupPath: string, prettyPrintJSON: boolean) => {
-  return database.getCollections()
-    .then((collections) => {
-      return promiseSerial(collections.map((collection) => {
-        return () => {
-          return backupCollection(collection, backupPath + '/' + collection.id, '/', prettyPrintJSON)
-        }
-      }))
-    })
-}*/
+const defaultBackupOptions = {
+  databaseStartPath: '',
+  requestCountLimit: 1
+}
 
 export class FirestoreBackup {
   options: BackupOptions;
 
+  documentRequestLimit: number;
+
   constructor(options: BackupOptions) {
     this.options = Object.assign({}, defaultBackupOptions, options)
-    Object.assign(this, this.options)
 
-    // backupCollectionConcurrency = this.requestCountLimit
+    if (this.options.requestCountLimit > 1) {
+      this.documentRequestLimit = 3 // 3 is the max before diminishing returns
+    }
   }
 
   backup() {
-    if (isDocumentPath(this.databaseStartPath)) {
-      const databaseDocument = this.database.doc(this.databaseStartPath)
+    if (isDocumentPath(this.options.databaseStartPath)) {
+      const databaseDocument = this.options.database.doc(this.options.databaseStartPath)
       return databaseDocument.get()
         .then((document) => {
-          return this.backupDocument(document, this.backupPath + '/' + document.ref.path, '/', this.prettyPrintJSON)
+          return this.backupDocument(document, this.options.backupPath + '/' + document.ref.path, '/')
         })
     }
 
-    if (isCollectionPath(this.databaseStartPath)) {
-      const databaseCollection = this.database.collection(this.databaseStartPath)
-      return this.backupCollection(databaseCollection, this.backupPath + '/' + databaseCollection.path, '/', this.prettyPrintJSON)
+    if (isCollectionPath(this.options.databaseStartPath)) {
+      const databaseCollection = this.options.database.collection(this.options.databaseStartPath)
+      return this.backupCollection(databaseCollection, this.options.backupPath + '/' + databaseCollection.path, '/')
     }
 
     return this.backupRootCollections()
   }
 
   backupRootCollections() {
-    return this.database.getCollections()
+    return this.options.database.getCollections()
       .then((collections) => {
         return promiseSerial(collections.map((collection) => {
           return () => {
-            return this.backupCollection(collection, this.backupPath + '/' + collection.id, '/')
+            return this.backupCollection(collection, this.options.backupPath + '/' + collection.id, '/')
           }
         }))
       })
   }
 
   backupCollection(collection: Object, backupPath: string, logPath: string) {
-    // return backupCollection(collection, backupPath, logPath, this.prettyPrintJSON)
     console.log('Backing up Collection \'' + logPath + collection.id + '\'')
     try {
       mkdirp.sync(backupPath)
@@ -231,12 +172,11 @@ export class FirestoreBackup {
     return Promise.resolve(collection.get())
       .then((documentSnapshots) => documentSnapshots.docs)
       .map((document) => {
-        return this.backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/', this.prettyPrintJSON)
-      }, { concurrency: this.requestCountLimit })
+        return this.backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/')
+      }, { concurrency: this.options.requestCountLimit })
   }
 
   backupDocument(document: Object, backupPath: string, logPath: string) {
-    // return backupDocument(document, backupPath, logPath, this.prettyPrintJSON)
     console.log('Backing up Document \'' + logPath + document.id + '\'')
     try {
       mkdirp.sync(backupPath)
@@ -266,7 +206,7 @@ export class FirestoreBackup {
 
     return Promise.resolve(document.ref.getCollections())
       .map((collection) => {
-        return this.backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/', this.prettyPrintJSON)
-      }, { concurrency: backupDocumentConcurrency })
+        return this.backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/')
+      }, { concurrency: this.documentRequestLimit })
   }
 }

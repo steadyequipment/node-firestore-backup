@@ -29,12 +29,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-var backupDocumentConcurrency = 3; // 3 is the max before diminishing returns
-var defaultBackupOptions = {
-  databaseStartPath: '',
-  requestCountLimit: 1
-};
-
 var constructReferenceUrl = exports.constructReferenceUrl = function constructReferenceUrl(reference) {
   var referenceSegments = reference._referencePath.segments;
   var referencePath = void 0;
@@ -118,74 +112,20 @@ var constructDocumentValue = exports.constructDocumentValue = function construct
   return documentDataToStore;
 };
 
-/*export const backupDocument = (document: Object, backupPath: string, logPath: string, prettyPrintJSON: boolean) => {
-  console.log('Backing up Document \'' + logPath + document.id + '\'')
-  try {
-    mkdirp.sync(backupPath)
-  } catch (error) {
-    throw new Error('Unable to create backup path for Document \'' + document.id + '\': ' + error)
-  }
-
-  let fileContents: string
-  try {
-    const documentData = document.data()
-    const keys = Object.keys(documentData)
-    var documentDataToStore = {}
-    documentDataToStore = Object.assign({}, constructDocumentValue(documentDataToStore, keys, documentData))
-    if (prettyPrintJSON === true) {
-      fileContents = JSON.stringify(documentDataToStore, null, 2)
-    } else {
-      fileContents = JSON.stringify(documentDataToStore)
-    }
-  } catch (error) {
-    throw new Error('Unable to serialize Document \'' + document.id + '\': ' + error)
-  }
-  try {
-    fs.writeFileSync(backupPath + '/' + document.id + '.json', fileContents)
-  } catch (error) {
-    throw new Error('Unable to write Document \'' + document.id + '\': ' + error)
-  }
-
-  return Promise.resolve(document.ref.getCollections())
-    .map((collection) => {
-      return backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/', prettyPrintJSON)
-    }, { concurrency: backupDocumentConcurrency })
-}*/
-
-/*export const backupCollection = (collection: Object, backupPath: string, logPath: string, prettyPrintJSON: boolean) => {
-  console.log('Backing up Collection \'' + logPath + collection.id + '\'')
-  try {
-    mkdirp.sync(backupPath)
-  } catch (error) {
-    throw new Error('Unable to create backup path for Collection \'' + collection.id + '\': ' + error)
-  }
-
-  return Promise.resolve(collection.get())
-    .then((documentSnapshots) => documentSnapshots.docs)
-    .map((document) => {
-      return backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/', prettyPrintJSON)
-    }, { concurrency: backupCollectionConcurrency })
-}*/
-
-/*export const backupRootCollections = (database: Object, backupPath: string, prettyPrintJSON: boolean) => {
-  return database.getCollections()
-    .then((collections) => {
-      return promiseSerial(collections.map((collection) => {
-        return () => {
-          return backupCollection(collection, backupPath + '/' + collection.id, '/', prettyPrintJSON)
-        }
-      }))
-    })
-}*/
+var defaultBackupOptions = {
+  databaseStartPath: '',
+  requestCountLimit: 1
+};
 
 var FirestoreBackup = exports.FirestoreBackup = function () {
   function FirestoreBackup(options) {
     _classCallCheck(this, FirestoreBackup);
 
     this.options = Object.assign({}, defaultBackupOptions, options);
-    Object.assign(this, this.options);
 
-    // backupCollectionConcurrency = this.requestCountLimit
+    if (this.options.requestCountLimit > 1) {
+      this.documentRequestLimit = 3; // 3 is the max before diminishing returns
+    }
   }
 
   _createClass(FirestoreBackup, [{
@@ -193,16 +133,16 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
     value: function backup() {
       var _this = this;
 
-      if ((0, _types.isDocumentPath)(this.databaseStartPath)) {
-        var databaseDocument = this.database.doc(this.databaseStartPath);
+      if ((0, _types.isDocumentPath)(this.options.databaseStartPath)) {
+        var databaseDocument = this.options.database.doc(this.options.databaseStartPath);
         return databaseDocument.get().then(function (document) {
-          return _this.backupDocument(document, _this.backupPath + '/' + document.ref.path, '/', _this.prettyPrintJSON);
+          return _this.backupDocument(document, _this.options.backupPath + '/' + document.ref.path, '/');
         });
       }
 
-      if ((0, _types.isCollectionPath)(this.databaseStartPath)) {
-        var databaseCollection = this.database.collection(this.databaseStartPath);
-        return this.backupCollection(databaseCollection, this.backupPath + '/' + databaseCollection.path, '/', this.prettyPrintJSON);
+      if ((0, _types.isCollectionPath)(this.options.databaseStartPath)) {
+        var databaseCollection = this.options.database.collection(this.options.databaseStartPath);
+        return this.backupCollection(databaseCollection, this.options.backupPath + '/' + databaseCollection.path, '/');
       }
 
       return this.backupRootCollections();
@@ -212,10 +152,10 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
     value: function backupRootCollections() {
       var _this2 = this;
 
-      return this.database.getCollections().then(function (collections) {
+      return this.options.database.getCollections().then(function (collections) {
         return (0, _utility.promiseSerial)(collections.map(function (collection) {
           return function () {
-            return _this2.backupCollection(collection, _this2.backupPath + '/' + collection.id, '/');
+            return _this2.backupCollection(collection, _this2.options.backupPath + '/' + collection.id, '/');
           };
         }));
       });
@@ -225,7 +165,6 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
     value: function backupCollection(collection, backupPath, logPath) {
       var _this3 = this;
 
-      // return backupCollection(collection, backupPath, logPath, this.prettyPrintJSON)
       console.log('Backing up Collection \'' + logPath + collection.id + '\'');
       try {
         _mkdirp2.default.sync(backupPath);
@@ -236,15 +175,14 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
       return _bluebird2.default.resolve(collection.get()).then(function (documentSnapshots) {
         return documentSnapshots.docs;
       }).map(function (document) {
-        return _this3.backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/', _this3.prettyPrintJSON);
-      }, { concurrency: this.requestCountLimit });
+        return _this3.backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/');
+      }, { concurrency: this.options.requestCountLimit });
     }
   }, {
     key: 'backupDocument',
     value: function backupDocument(document, backupPath, logPath) {
       var _this4 = this;
 
-      // return backupDocument(document, backupPath, logPath, this.prettyPrintJSON)
       console.log('Backing up Document \'' + logPath + document.id + '\'');
       try {
         _mkdirp2.default.sync(backupPath);
@@ -273,8 +211,8 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
       }
 
       return _bluebird2.default.resolve(document.ref.getCollections()).map(function (collection) {
-        return _this4.backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/', _this4.prettyPrintJSON);
-      }, { concurrency: backupDocumentConcurrency });
+        return _this4.backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/');
+      }, { concurrency: this.documentRequestLimit });
     }
   }]);
 
