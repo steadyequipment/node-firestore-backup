@@ -19,10 +19,6 @@ var _mkdirp = require('mkdirp');
 
 var _mkdirp2 = _interopRequireDefault(_mkdirp);
 
-var _bluebird = require('bluebird');
-
-var _bluebird2 = _interopRequireDefault(_bluebird);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -126,6 +122,8 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
     if (this.options.requestCountLimit > 1) {
       this.documentRequestLimit = 3; // 3 is the max before diminishing returns
     }
+
+    this.Promise = Promise;
   }
 
   _createClass(FirestoreBackup, [{
@@ -172,11 +170,13 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
         throw new Error('Unable to create backup path for Collection \'' + collection.id + '\': ' + error);
       }
 
-      return _bluebird2.default.resolve(collection.get()).then(function (documentSnapshots) {
+      return this.Promise.resolve(collection.get()).then(function (documentSnapshots) {
         return documentSnapshots.docs;
       }).map(function (document) {
         return _this3.backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/');
-      }, { concurrency: this.options.requestCountLimit });
+      }, { concurrency: this.options.requestCountLimit }).catch(function (err) {
+        return console.error(err);
+      });
     }
   }, {
     key: 'backupDocument',
@@ -210,9 +210,25 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
         throw new Error('Unable to write Document \'' + document.id + '\': ' + error);
       }
 
-      return _bluebird2.default.resolve(document.ref.getCollections()).map(function (collection) {
+      return this.Promise.resolve(document.ref.getCollections()).map(function (collection) {
         return _this4.backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/');
-      }, { concurrency: this.documentRequestLimit });
+      }, { concurrency: this.documentRequestLimit }).catch(function (err) {
+        return console.error(err);
+      });
+    }
+  }, {
+    key: 'Promise',
+    get: function get() {
+      return this._PromiseLibrary;
+    }
+
+    /**
+     * The Promise library used to process asynchronous functions.
+     */
+    ,
+    set: function set(value) {
+      // TODO: validate this ia valid Promise-like object
+      this._PromiseLibrary = (0, _utility.addMapFunction)(value);
     }
   }]);
 

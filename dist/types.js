@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.isCollectionPath = exports.isDocumentPath = exports.isReference = exports.isDate = exports.isBoolean = exports.isUndefined = exports.isNull = exports.isObject = exports.isArray = exports.isNumber = exports.isString = undefined;
+exports.isCollectionPath = exports.isDocumentPath = exports.isReference = exports.isDate = exports.isBoolean = exports.isUndefined = exports.isNull = exports.isFunction = exports.isObject = exports.isArray = exports.isNumber = exports.isString = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -55,6 +55,11 @@ var isObjectOfType = function isObjectOfType(value, type, typeName) {
 // Returns if a value is an object
 var isObject = exports.isObject = function isObject(value) {
   return isObjectOfType(value, Object, 'object');
+};
+
+// Returns if a value is a function
+var isFunction = exports.isFunction = function isFunction(value) {
+  return isObjectOfType(value, Function, 'function');
 };
 
 // Returns if a value is null
