@@ -29,7 +29,6 @@
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.6.1",
     "babel-preset-flow": "^6.23.0",
-    "bluebird": "^3.5.1",
     "colors": "^1.1.2",
     "commander": "^2.11.0",
     "firebase-admin": "^5.8.1",
