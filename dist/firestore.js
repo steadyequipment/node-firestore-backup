@@ -3,7 +3,9 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.backupRootCollections = exports.backupCollection = exports.backupDocument = exports.constructDocumentValue = exports.constructReferenceUrl = undefined;
+exports.FirestoreBackup = exports.constructDocumentValue = exports.constructReferenceUrl = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _types = require('./types');
 
@@ -18,6 +20,8 @@ var _mkdirp = require('mkdirp');
 var _mkdirp2 = _interopRequireDefault(_mkdirp);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
@@ -104,68 +108,111 @@ var constructDocumentValue = exports.constructDocumentValue = function construct
   return documentDataToStore;
 };
 
-var backupDocument = exports.backupDocument = function backupDocument(document, backupPath, logPath, prettyPrintJSON) {
-  console.log('Backing up Document \'' + logPath + document.id + '\'');
-  try {
-    _mkdirp2.default.sync(backupPath);
-  } catch (error) {
-    throw new Error('Unable to create backup path for Document \'' + document.id + '\': ' + error);
-  }
+var defaultBackupOptions = {
+  databaseStartPath: '',
+  requestCountLimit: 1
+};
 
-  var fileContents = void 0;
-  try {
-    var documentData = document.data();
-    var keys = Object.keys(documentData);
-    var documentDataToStore = {};
-    documentDataToStore = Object.assign({}, constructDocumentValue(documentDataToStore, keys, documentData));
-    if (prettyPrintJSON === true) {
-      fileContents = JSON.stringify(documentDataToStore, null, 2);
-    } else {
-      fileContents = JSON.stringify(documentDataToStore);
+var FirestoreBackup = exports.FirestoreBackup = function () {
+  function FirestoreBackup(options) {
+    _classCallCheck(this, FirestoreBackup);
+
+    this.options = Object.assign({}, defaultBackupOptions, options);
+
+    if (this.options.requestCountLimit > 1) {
+      this.documentRequestLimit = 3; // 3 is the max before diminishing returns
     }
-  } catch (error) {
-    throw new Error('Unable to serialize Document \'' + document.id + '\': ' + error);
-  }
-  try {
-    _fs2.default.writeFileSync(backupPath + '/' + document.id + '.json', fileContents);
-  } catch (error) {
-    throw new Error('Unable to write Document \'' + document.id + '\': ' + error);
   }
 
-  return document.ref.getCollections().then(function (collections) {
-    return (0, _utility.promiseSerial)(collections.map(function (collection) {
-      return function () {
-        return backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/', prettyPrintJSON);
-      };
-    }));
-  });
-};
+  _createClass(FirestoreBackup, [{
+    key: 'backup',
+    value: function backup() {
+      var _this = this;
 
-var backupCollection = exports.backupCollection = function backupCollection(collection, backupPath, logPath, prettyPrintJSON) {
-  console.log('Backing up Collection \'' + logPath + collection.id + '\'');
-  try {
-    _mkdirp2.default.sync(backupPath);
-  } catch (error) {
-    throw new Error('Unable to create backup path for Collection \'' + collection.id + '\': ' + error);
-  }
+      if ((0, _types.isDocumentPath)(this.options.databaseStartPath)) {
+        var databaseDocument = this.options.database.doc(this.options.databaseStartPath);
+        return databaseDocument.get().then(function (document) {
+          return _this.backupDocument(document, _this.options.backupPath + '/' + document.ref.path, '/');
+        });
+      }
 
-  return collection.get().then(function (documentSnapshots) {
-    var backupFunctions = [];
-    documentSnapshots.forEach(function (document) {
-      backupFunctions.push(function () {
-        return backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/', prettyPrintJSON);
+      if ((0, _types.isCollectionPath)(this.options.databaseStartPath)) {
+        var databaseCollection = this.options.database.collection(this.options.databaseStartPath);
+        return this.backupCollection(databaseCollection, this.options.backupPath + '/' + databaseCollection.path, '/');
+      }
+
+      return this.backupRootCollections();
+    }
+  }, {
+    key: 'backupRootCollections',
+    value: function backupRootCollections() {
+      var _this2 = this;
+
+      return this.options.database.getCollections().then(function (collections) {
+        return (0, _utility.promiseParallel)(collections, function (collection) {
+          return _this2.backupCollection(collection, _this2.options.backupPath + '/' + collection.id, '/');
+        }, 1);
       });
-    });
-    return (0, _utility.promiseSerial)(backupFunctions);
-  });
-};
+    }
+  }, {
+    key: 'backupCollection',
+    value: function backupCollection(collection, backupPath, logPath) {
+      var _this3 = this;
 
-var backupRootCollections = exports.backupRootCollections = function backupRootCollections(database, backupPath, prettyPrintJSON) {
-  return database.getCollections().then(function (collections) {
-    return (0, _utility.promiseSerial)(collections.map(function (collection) {
-      return function () {
-        return backupCollection(collection, backupPath + '/' + collection.id, '/', prettyPrintJSON);
-      };
-    }));
-  });
-};
+      console.log('Backing up Collection \'' + logPath + collection.id + '\'');
+      try {
+        _mkdirp2.default.sync(backupPath);
+      } catch (error) {
+        throw new Error('Unable to create backup path for Collection \'' + collection.id + '\': ' + error);
+      }
+
+      return collection.get().then(function (documentSnapshots) {
+        return documentSnapshots.docs;
+      }).then(function (docs) {
+        return (0, _utility.promiseParallel)(docs, function (document) {
+          return _this3.backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/');
+        }, _this3.options.requestCountLimit);
+      });
+    }
+  }, {
+    key: 'backupDocument',
+    value: function backupDocument(document, backupPath, logPath) {
+      var _this4 = this;
+
+      console.log('Backing up Document \'' + logPath + document.id + '\'');
+      try {
+        _mkdirp2.default.sync(backupPath);
+      } catch (error) {
+        throw new Error('Unable to create backup path for Document \'' + document.id + '\': ' + error);
+      }
+
+      var fileContents = void 0;
+      try {
+        var documentData = document.data();
+        var keys = Object.keys(documentData);
+        var documentDataToStore = {};
+        documentDataToStore = Object.assign({}, constructDocumentValue(documentDataToStore, keys, documentData));
+        if (this.prettyPrintJSON === true) {
+          fileContents = JSON.stringify(documentDataToStore, null, 2);
+        } else {
+          fileContents = JSON.stringify(documentDataToStore);
+        }
+      } catch (error) {
+        throw new Error('Unable to serialize Document \'' + document.id + '\': ' + error);
+      }
+      try {
+        _fs2.default.writeFileSync(backupPath + '/' + document.id + '.json', fileContents);
+      } catch (error) {
+        throw new Error('Unable to write Document \'' + document.id + '\': ' + error);
+      }
+
+      return document.ref.getCollections().then(function (collections) {
+        return (0, _utility.promiseParallel)(collections, function (collection) {
+          return _this4.backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/');
+        }, _this4.documentRequestLimit);
+      });
+    }
+  }]);
+
+  return FirestoreBackup;
+}();

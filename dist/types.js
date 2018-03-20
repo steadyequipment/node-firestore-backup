@@ -3,8 +3,11 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.isCollectionPath = exports.isDocumentPath = exports.isReference = exports.isDate = exports.isBoolean = exports.isUndefined = exports.isNull = exports.isFunction = exports.isObject = exports.isArray = exports.isNumber = exports.isString = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _utility = require('./utility');
 
 // Returns if a value is a string
 var isString = exports.isString = function isString(value) {
@@ -18,8 +21,6 @@ var isString = exports.isString = function isString(value) {
 };
 
 // Returns if a value is really a number
-
-
 var isNumber = exports.isNumber = function isNumber(value) {
   if (typeof value === 'number' && isFinite(value)) {
     return {
@@ -54,6 +55,11 @@ var isObjectOfType = function isObjectOfType(value, type, typeName) {
 // Returns if a value is an object
 var isObject = exports.isObject = function isObject(value) {
   return isObjectOfType(value, Object, 'object');
+};
+
+// Returns if a value is a function
+var isFunction = exports.isFunction = function isFunction(value) {
+  return isObjectOfType(value, Function, 'function');
 };
 
 // Returns if a value is null
@@ -105,6 +111,34 @@ var isReference = exports.isReference = function isReference(value) {
     return {
       value: value,
       type: 'reference'
+    };
+  }
+  return false;
+};
+
+/**
+ * Indicates whether this ResourcePath points to a document.
+ */
+var isDocumentPath = exports.isDocumentPath = function isDocumentPath(value) {
+  var segments = (0, _utility.getSegments)(value);
+  if (segments.length > 0 && segments.length % 2 === 0) {
+    return {
+      value: value,
+      type: 'DocumentPath'
+    };
+  }
+  return false;
+};
+
+/**
+ * Indicates whether this ResourcePath points to a collection.
+ */
+var isCollectionPath = exports.isCollectionPath = function isCollectionPath(value) {
+  var segments = (0, _utility.getSegments)(value);
+  if (segments.length % 2 === 1) {
+    return {
+      value: value,
+      type: 'CollectionPath'
     };
   }
   return false;

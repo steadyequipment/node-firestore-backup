@@ -16,6 +16,8 @@
   "main": "./dist/index.js",
   "scripts": {
     "bin": "./bin/firestore-backup.js",
+    "test": "rm -rf ./backup && ./bin/firestore-backup.js --accountCredentials $GOOGLE_APPLICATION_CREDENTIALS --backupPath ./backup --prettyPrint --requestCountLimit 20",
+    "pretest": "npm run build",
     "clean": "rm -rf dist && mkdir dist",
     "buildSource": "babel lib --out-dir dist",
     "buildFlow": "flow-copy-source lib dist",
@@ -34,6 +36,7 @@
   },
   "devDependencies": {
     "babel-eslint": "7",
+    "babel-plugin-transform-class-properties": "^6.24.1",
     "eslint": "3.x",
     "eslint-plugin-flowtype": "^2.39.1",
     "flow-bin": "^0.61.0",

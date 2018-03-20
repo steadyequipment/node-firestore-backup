@@ -6,17 +6,19 @@ Object.defineProperty(exports, "__esModule", {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-exports.default = function (accountCredentials, backupPath, prettyPrintJSON) {
+exports.default = function (_options) {
+  var options = Object.assign({}, _options, { databaseStartPath: '' });
+
   var accountCredentialsContents = void 0;
-  if (typeof accountCredentials === 'string') {
+  if (typeof options.accountCredentials === 'string') {
     try {
-      var accountCredentialsBuffer = _fs2.default.readFileSync(accountCredentials);
+      var accountCredentialsBuffer = _fs2.default.readFileSync(options.accountCredentials);
       accountCredentialsContents = JSON.parse(accountCredentialsBuffer.toString());
     } catch (error) {
-      throw new Error('Unable to read account credential file \'' + accountCredentials + '\': ' + error);
+      throw new Error('Unable to read account credential file \'' + options.accountCredentials + '\': ' + error);
     }
-  } else if ((typeof accountCredentials === 'undefined' ? 'undefined' : _typeof(accountCredentials)) === 'object') {
-    accountCredentialsContents = accountCredentials;
+  } else if (_typeof(options.accountCredentials) === 'object') {
+    accountCredentialsContents = options.accountCredentials;
   } else {
     throw new Error('No account credentials provided');
   }
@@ -26,13 +28,14 @@ exports.default = function (accountCredentials, backupPath, prettyPrintJSON) {
   });
 
   try {
-    _mkdirp2.default.sync(backupPath);
+    _mkdirp2.default.sync(options.backupPath);
   } catch (error) {
-    throw new Error('Unable to create backup path \'' + backupPath + '\': ' + error);
+    throw new Error('Unable to create backup path \'' + options.backupPath + '\': ' + error);
   }
 
-  var database = _firebaseAdmin2.default.firestore();
-  return (0, _firestore.backupRootCollections)(database, backupPath, prettyPrintJSON);
+  options.database = _firebaseAdmin2.default.firestore();
+  var backupClient = new _firestore.FirestoreBackup(options);
+  return backupClient.backup();
 };
 
 var _firebaseAdmin = require('firebase-admin');
