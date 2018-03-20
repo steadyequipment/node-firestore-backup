@@ -19,6 +19,10 @@ var _mkdirp = require('mkdirp');
 
 var _mkdirp2 = _interopRequireDefault(_mkdirp);
 
+var _jsonStableStringify = require('json-stable-stringify');
+
+var _jsonStableStringify2 = _interopRequireDefault(_jsonStableStringify);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -193,9 +197,9 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
         var documentDataToStore = {};
         documentDataToStore = Object.assign({}, constructDocumentValue(documentDataToStore, keys, documentData));
         if (this.prettyPrintJSON === true) {
-          fileContents = JSON.stringify(documentDataToStore, null, 2);
+          fileContents = (0, _jsonStableStringify2.default)(documentDataToStore, null, 2);
         } else {
-          fileContents = JSON.stringify(documentDataToStore);
+          fileContents = (0, _jsonStableStringify2.default)(documentDataToStore);
         }
       } catch (error) {
         throw new Error('Unable to serialize Document \'' + document.id + '\': ' + error);

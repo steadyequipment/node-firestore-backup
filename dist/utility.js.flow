@@ -26,11 +26,11 @@ export const promiseParallel = (input, mapper, concurrency = 1) => {
   let offset = 0
 
   function dowork() {
-    return (offset >= input.length) ?
-      Promise.resolve() :
-      Promise.resolve(offset++)
-      .then(ix => mapper(input[ix]).then(result => { results[ix] = result }))
-      .then(() => dowork())
+    return (offset >= input.length)
+      ? Promise.resolve()
+      : Promise.resolve(offset++)
+        .then(ix => mapper(input[ix]).then(result => { results[ix] = result }))
+        .then(() => dowork())
   }
 
   return Promise.all(Array.from({ length: concurrency }, dowork))

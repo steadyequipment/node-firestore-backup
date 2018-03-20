@@ -13,10 +13,12 @@ import {
   isCollectionPath
 } from './types'
 import type { ValueDescription, Validator, BackupOptions } from './types'
-import { promiseSerial, promiseParallel } from './utility'
+import { promiseParallel } from './utility'
 
 import fs from 'fs'
 import mkdirp from 'mkdirp'
+
+import stringify from 'json-stable-stringify'
 
 export const constructReferenceUrl = (reference: Object): ValueDescription => {
   const referenceSegments = reference._referencePath.segments
@@ -190,9 +192,9 @@ export class FirestoreBackup {
       var documentDataToStore = {}
       documentDataToStore = Object.assign({}, constructDocumentValue(documentDataToStore, keys, documentData))
       if (this.prettyPrintJSON === true) {
-        fileContents = JSON.stringify(documentDataToStore, null, 2)
+        fileContents = stringify(documentDataToStore, null, 2)
       } else {
-        fileContents = JSON.stringify(documentDataToStore)
+        fileContents = stringify(documentDataToStore)
       }
     } catch (error) {
       throw new Error('Unable to serialize Document \'' + document.id + '\': ' + error)
