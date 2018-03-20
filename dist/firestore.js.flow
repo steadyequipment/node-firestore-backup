@@ -4,7 +4,6 @@ import {
   isString,
   isNull,
   isObject,
-  isFunction,
   isArray,
   isNumber,
   isDate,
@@ -14,7 +13,7 @@ import {
   isCollectionPath
 } from './types'
 import type { ValueDescription, Validator, BackupOptions } from './types'
-import { promiseSerial, addMapFunction } from './utility'
+import { promiseSerial, promiseParallel } from './utility'
 
 import fs from 'fs'
 import mkdirp from 'mkdirp'
@@ -125,28 +124,12 @@ export class FirestoreBackup {
 
   documentRequestLimit: number;
 
-  _PromiseLibrary: Object;
-
   constructor(options: BackupOptions) {
     this.options = Object.assign({}, defaultBackupOptions, options)
 
     if (this.options.requestCountLimit > 1) {
       this.documentRequestLimit = 3 // 3 is the max before diminishing returns
     }
-
-    this.Promise = Promise
-  }
-
-  get Promise() {
-    return this._PromiseLibrary
-  }
-
-  /**
-   * The Promise library used to process asynchronous functions.
-   */
-  set Promise(value: Object) {
-    // TODO: validate this ia valid Promise-like object
-    this._PromiseLibrary = addMapFunction(value)
   }
 
   backup() {
@@ -169,11 +152,9 @@ export class FirestoreBackup {
   backupRootCollections() {
     return this.options.database.getCollections()
       .then((collections) => {
-        return promiseSerial(collections.map((collection) => {
-          return () => {
-            return this.backupCollection(collection, this.options.backupPath + '/' + collection.id, '/')
-          }
-        }))
+        return promiseParallel(collections, (collection) => {
+          return this.backupCollection(collection, this.options.backupPath + '/' + collection.id, '/')
+        }, 1)
       })
   }
 
@@ -185,12 +166,13 @@ export class FirestoreBackup {
       throw new Error('Unable to create backup path for Collection \'' + collection.id + '\': ' + error)
     }
 
-    return this.Promise.resolve(collection.get())
+    return collection.get()
       .then((documentSnapshots) => documentSnapshots.docs)
-      .map((document) => {
-        return this.backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/')
-      }, { concurrency: this.options.requestCountLimit })
-      .catch(err=>console.error(err))
+      .then((docs) => {
+        return promiseParallel(docs, (document) => {
+          return this.backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/')
+        }, this.options.requestCountLimit)
+      })
   }
 
   backupDocument(document: Object, backupPath: string, logPath: string) {
@@ -221,10 +203,11 @@ export class FirestoreBackup {
       throw new Error('Unable to write Document \'' + document.id + '\': ' + error)
     }
 
-    return this.Promise.resolve(document.ref.getCollections())
-      .map((collection) => {
-        return this.backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/')
-      }, { concurrency: this.documentRequestLimit })
-      .catch(err=>console.error(err))
+    return document.ref.getCollections()
+      .then((collections) => {
+        return promiseParallel(collections, (collection) => {
+          return this.backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/')
+        }, this.documentRequestLimit)
+      })
   }
 }

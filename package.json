@@ -16,7 +16,7 @@
   "main": "./dist/index.js",
   "scripts": {
     "bin": "./bin/firestore-backup.js",
-    "test": "./bin/firestore-backup.js --accountCredentials $GOOGLE_APPLICATION_CREDENTIALS --backupPath ./backup --prettyPrint --requestCountLimit 20",
+    "test": "rm -rf ./backup && ./bin/firestore-backup.js --accountCredentials $GOOGLE_APPLICATION_CREDENTIALS --backupPath ./backup --prettyPrint --requestCountLimit 20",
     "pretest": "npm run build",
     "clean": "rm -rf dist && mkdir dist",
     "buildSource": "babel lib --out-dir dist",

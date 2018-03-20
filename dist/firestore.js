@@ -122,8 +122,6 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
     if (this.options.requestCountLimit > 1) {
       this.documentRequestLimit = 3; // 3 is the max before diminishing returns
     }
-
-    this.Promise = Promise;
   }
 
   _createClass(FirestoreBackup, [{
@@ -151,11 +149,9 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
       var _this2 = this;
 
       return this.options.database.getCollections().then(function (collections) {
-        return (0, _utility.promiseSerial)(collections.map(function (collection) {
-          return function () {
-            return _this2.backupCollection(collection, _this2.options.backupPath + '/' + collection.id, '/');
-          };
-        }));
+        return (0, _utility.promiseParallel)(collections, function (collection) {
+          return _this2.backupCollection(collection, _this2.options.backupPath + '/' + collection.id, '/');
+        }, 1);
       });
     }
   }, {
@@ -170,12 +166,12 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
         throw new Error('Unable to create backup path for Collection \'' + collection.id + '\': ' + error);
       }
 
-      return this.Promise.resolve(collection.get()).then(function (documentSnapshots) {
+      return collection.get().then(function (documentSnapshots) {
         return documentSnapshots.docs;
-      }).map(function (document) {
-        return _this3.backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/');
-      }, { concurrency: this.options.requestCountLimit }).catch(function (err) {
-        return console.error(err);
+      }).then(function (docs) {
+        return (0, _utility.promiseParallel)(docs, function (document) {
+          return _this3.backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/');
+        }, _this3.options.requestCountLimit);
       });
     }
   }, {
@@ -210,25 +206,11 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
         throw new Error('Unable to write Document \'' + document.id + '\': ' + error);
       }
 
-      return this.Promise.resolve(document.ref.getCollections()).map(function (collection) {
-        return _this4.backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/');
-      }, { concurrency: this.documentRequestLimit }).catch(function (err) {
-        return console.error(err);
+      return document.ref.getCollections().then(function (collections) {
+        return (0, _utility.promiseParallel)(collections, function (collection) {
+          return _this4.backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/');
+        }, _this4.documentRequestLimit);
       });
-    }
-  }, {
-    key: 'Promise',
-    get: function get() {
-      return this._PromiseLibrary;
-    }
-
-    /**
-     * The Promise library used to process asynchronous functions.
-     */
-    ,
-    set: function set(value) {
-      // TODO: validate this ia valid Promise-like object
-      this._PromiseLibrary = (0, _utility.addMapFunction)(value);
     }
   }]);
 
