@@ -86,4 +86,4 @@ firestore-backup --accountCredentials path/to/credentials/file.json --backupPath
 That's it! ✨🌈
 
 ## Contributions
-Feel free to report bugs and make feature requests in the [Issue Tracker](https://github.com/steadyequipment/node-firestore-backup/issues), fork and create pull requests!
+This project has been made much better by it's [contributors](https://github.com/steadyequipment/node-firestore-backup/graphs/contributors), feel free to report bugs and make feature requests in the [Issue Tracker](https://github.com/steadyequipment/node-firestore-backup/issues), fork and create pull requests!
