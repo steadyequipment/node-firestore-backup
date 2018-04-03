@@ -24,8 +24,8 @@ var databaseStartPathParamDescription = 'The database collection or document pat
 var requestCountLimitParamKey = 'requestCountLimit'
 var requestCountLimitParamDescription = 'The maximum number of requests to be made in parallel.'
 
-var excludeParamKey = 'exclude'
-var excludeParamDescription = 'Collection(s) to exclude from backing up.'
+var excludeParamKey = 'excludeCollections'
+var excludeParamDescription = 'Collection id(s) to exclude from backing up.'
 
 const collectAllValues = (addValue/*: string */, toValues/*: Array<string> */)/*: Array<string> */ => {
   toValues.push(addValue)
