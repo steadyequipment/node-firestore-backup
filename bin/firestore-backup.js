@@ -26,10 +26,9 @@ var requestCountLimitParamDescription = 'The maximum number of requests to be ma
 var excludeParamKey = 'exclude'
 var excludeParamDescription = 'Collection(s) to exclude from backing up.'
 
-// This allows taking an array of collections to exclude, e.g. `firestore-backup -E logs -E events`
-function collectAllExcludeValues(str, memo) {
-  memo.push(str)
-  return memo
+const collectAllValues = (addValue/*: string */, toValues/*: Array<string> */)/*: Array<string> */ => {
+  toValues.push(addValue)
+  return toValues
 }
 
 commander.version('1.0.1')
@@ -38,7 +37,7 @@ commander.version('1.0.1')
   .option('-P, --' + prettyPrintParamKey, prettyPrintParamDescription)
   .option('-S, --' + databaseStartPathParamKey + ' <path>', databaseStartPathParamDescription)
   .option('-L, --' + requestCountLimitParamKey + ' <number>', requestCountLimitParamDescription)
-  .option('-E, --' + excludeParamKey, excludeParamDescription, collectAllExcludeValues, [])
+  .option('-E, --' + excludeParamKey + ' <path>', excludeParamDescription, collectAllValues, [])
   .parse(process.argv)
 
 const accountCredentialsPath = commander[accountCredentialsPathParamKey]
