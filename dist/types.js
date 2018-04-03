@@ -43,6 +43,7 @@ var isArray = exports.isArray = function isArray(value) {
 };
 
 var isObjectOfType = function isObjectOfType(value, type, typeName) {
+  // eslint-disable-line no-undef
   if (value && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && value.constructor === type) {
     return {
       value: value,

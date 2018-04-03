@@ -4,6 +4,8 @@ lib/.*
 [ignore]
 <PROJECT_ROOT>/node_modules/protobufjs/src/bower.json
 <PROJECT_ROOT>/node_modules/google-gax/node_modules/protobufjs/tests/data/invalid.json
+<PROJECT_ROOT>/node_modules/google-proto-files/node_modules/protobufjs/tests/data/invalid.json
+<PROJECT_ROOT>/node_modules/google-gax/node_modules/grpc/node_modules/protobufjs/src/bower.json
 
 
 [libs]

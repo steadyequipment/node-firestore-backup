@@ -5,6 +5,7 @@
 var commander = require('commander')
 var colors = require('colors')
 
+// $FlowFixMe - TODO: 'process' is available in node, look into why this is failing
 var process = require('process')
 var fs = require('fs')
 
