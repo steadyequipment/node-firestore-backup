@@ -134,6 +134,14 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
     value: function backup() {
       var _this = this;
 
+      console.log('Starting backup...');
+      if (this.options.databaseStartPath) {
+        console.log('Using start path \'', this.options.databaseStartPath, '\'');
+      }
+      if (this.options.exclude && this.options.exclude.length > 0) {
+        console.log('Excluding ', this.options.exclude);
+      }
+
       if ((0, _types.isDocumentPath)(this.options.databaseStartPath)) {
         var databaseDocument = this.options.database.doc(this.options.databaseStartPath);
         return databaseDocument.get().then(function (document) {
