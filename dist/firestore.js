@@ -114,7 +114,8 @@ var constructDocumentValue = exports.constructDocumentValue = function construct
 
 var defaultBackupOptions = {
   databaseStartPath: '',
-  requestCountLimit: 1
+  requestCountLimit: 1,
+  exclude: []
 };
 
 var FirestoreBackup = exports.FirestoreBackup = function () {
@@ -154,6 +155,9 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
 
       return this.options.database.getCollections().then(function (collections) {
         return (0, _utility.promiseParallel)(collections, function (collection) {
+          if (_this2.options.exclude.includes(collection.id)) {
+            return Promise.resolve();
+          }
           return _this2.backupCollection(collection, _this2.options.backupPath + '/' + collection.id, '/');
         }, 1);
       });
