@@ -32,7 +32,7 @@ const collectAllValues = (addValue/*: string */, toValues/*: Array<string> */)/*
   return toValues
 }
 
-commander.version('1.0.1')
+commander.version('2.2.0')
   .option('-a, --' + accountCredentialsPathParamKey + ' <path>', accountCredentialsPathParamDescription)
   .option('-B, --' + backupPathParamKey + ' <path>', backupPathParamDescription)
   .option('-P, --' + prettyPrintParamKey, prettyPrintParamDescription)
