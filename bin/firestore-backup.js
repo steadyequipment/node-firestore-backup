@@ -38,7 +38,7 @@ commander.version('1.0.1')
   .option('-P, --' + prettyPrintParamKey, prettyPrintParamDescription)
   .option('-S, --' + databaseStartPathParamKey + ' <path>', databaseStartPathParamDescription)
   .option('-L, --' + requestCountLimitParamKey + ' <number>', requestCountLimitParamDescription)
-  .option('-E', '--' + excludeParamKey, excludeParamDescription, collectAllExcludeValues, [])
+  .option('-E, --' + excludeParamKey, excludeParamDescription, collectAllExcludeValues, [])
   .parse(process.argv)
 
 const accountCredentialsPath = commander[accountCredentialsPathParamKey]
