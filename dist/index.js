@@ -7,7 +7,7 @@ Object.defineProperty(exports, "__esModule", {
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.default = function (_options) {
-  var options = Object.assign({}, _options, { databaseStartPath: '' });
+  var options = Object.assign({ databaseStartPath: '' }, _options);
 
   var accountCredentialsContents = void 0;
   if (typeof options.accountCredentials === 'string') {

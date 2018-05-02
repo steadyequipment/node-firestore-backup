@@ -17,7 +17,7 @@ export type BackupOptions = {|
 |}
 
 export default function(_options: BackupOptions) {
-  const options = Object.assign({}, _options, {databaseStartPath: ''})
+  const options = Object.assign({databaseStartPath: ''}, _options)
 
   let accountCredentialsContents: Object
   if (typeof options.accountCredentials === 'string') {
