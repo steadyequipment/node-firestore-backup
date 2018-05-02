@@ -115,7 +115,8 @@ var constructDocumentValue = exports.constructDocumentValue = function construct
 var defaultBackupOptions = {
   databaseStartPath: '',
   requestCountLimit: 1,
-  exclude: []
+  exclude: [],
+  excludePatterns: []
 };
 
 var FirestoreBackup = exports.FirestoreBackup = function () {
@@ -139,7 +140,11 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
         console.log('Using start path \'', this.options.databaseStartPath, '\'');
       }
       if (this.options.exclude && this.options.exclude.length > 0) {
-        console.log('Excluding ', this.options.exclude);
+        console.log('Excluding top level collections', this.options.exclude);
+      }
+
+      if (this.options.excludePatterns && this.options.excludePatterns.length > 0) {
+        console.log('Excluding patterns', this.options.excludePatterns);
       }
 
       if ((0, _types.isDocumentPath)(this.options.databaseStartPath)) {
@@ -157,6 +162,17 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
       return this.backupRootCollections();
     }
   }, {
+    key: 'excludeByPattern',
+    value: function excludeByPattern(fullPath) {
+      if (this.options.excludePatterns) {
+        var matchedPattern = this.options.excludePatterns.find(function (pattern) {
+          return pattern.test(fullPath);
+        });
+        return !!matchedPattern;
+      }
+      return false;
+    }
+  }, {
     key: 'backupRootCollections',
     value: function backupRootCollections() {
       var _this2 = this;
@@ -164,7 +180,7 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
       return this.options.database.getCollections().then(function (collections) {
         return (0, _utility.promiseParallel)(collections, function (collection) {
           if (_this2.options.exclude.includes(collection.id)) {
-            return Promise.resolve();
+            return;
           }
           return _this2.backupCollection(collection, _this2.options.backupPath + '/' + collection.id, '/');
         }, 1);
@@ -175,7 +191,12 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
     value: function backupCollection(collection, backupPath, logPath) {
       var _this3 = this;
 
-      console.log('Backing up Collection \'' + logPath + collection.id + '\'');
+      var logPathWithCollection = logPath + collection.id;
+      if (this.excludeByPattern('/' + collection.path)) {
+        console.log('Excluding Collection \'' + logPathWithCollection + '\' (/' + collection.path + ')');
+        return;
+      }
+      console.log('Backing up Collection \'' + logPathWithCollection + '\'');
       try {
         _mkdirp2.default.sync(backupPath);
       } catch (error) {
@@ -186,7 +207,7 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
         return documentSnapshots.docs;
       }).then(function (docs) {
         return (0, _utility.promiseParallel)(docs, function (document) {
-          return _this3.backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/');
+          return _this3.backupDocument(document, backupPath + '/' + document.id, logPathWithCollection + '/');
         }, _this3.options.requestCountLimit);
       });
     }
@@ -195,7 +216,12 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
     value: function backupDocument(document, backupPath, logPath) {
       var _this4 = this;
 
-      console.log('Backing up Document \'' + logPath + document.id + '\'');
+      var logPathWithDocument = logPath + document.id;
+      if (this.excludeByPattern('/' + document.ref.path)) {
+        console.log('Excluding Document \'' + logPathWithDocument + '\' (/' + document.ref.path + ')');
+        return;
+      }
+      console.log('Backing up Document \'' + logPathWithDocument + '\'');
       try {
         _mkdirp2.default.sync(backupPath);
       } catch (error) {
@@ -224,7 +250,7 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
 
       return document.ref.getCollections().then(function (collections) {
         return (0, _utility.promiseParallel)(collections, function (collection) {
-          return _this4.backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/');
+          return _this4.backupCollection(collection, backupPath + '/' + collection.id, logPathWithDocument + '/');
         }, _this4.documentRequestLimit);
       });
     }
