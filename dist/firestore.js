@@ -180,7 +180,7 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
       return this.options.database.getCollections().then(function (collections) {
         return (0, _utility.promiseParallel)(collections, function (collection) {
           if (_this2.options.exclude.includes(collection.id)) {
-            return;
+            return Promise.resolve();
           }
           return _this2.backupCollection(collection, _this2.options.backupPath + '/' + collection.id, '/');
         }, 1);
@@ -194,7 +194,7 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
       var logPathWithCollection = logPath + collection.id;
       if (this.excludeByPattern('/' + collection.path)) {
         console.log('Excluding Collection \'' + logPathWithCollection + '\' (/' + collection.path + ')');
-        return;
+        return Promise.resolve();
       }
       console.log('Backing up Collection \'' + logPathWithCollection + '\'');
       try {
@@ -219,7 +219,7 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
       var logPathWithDocument = logPath + document.id;
       if (this.excludeByPattern('/' + document.ref.path)) {
         console.log('Excluding Document \'' + logPathWithDocument + '\' (/' + document.ref.path + ')');
-        return;
+        return Promise.resolve();
       }
       console.log('Backing up Document \'' + logPathWithDocument + '\'');
       try {

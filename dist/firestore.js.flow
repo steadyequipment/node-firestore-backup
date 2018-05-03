@@ -178,7 +178,7 @@ export class FirestoreBackup {
       .then((collections) => {
         return promiseParallel(collections, (collection) => {
           if (this.options.exclude.includes(collection.id)) {
-            return
+            return Promise.resolve()
           }
           return this.backupCollection(collection, this.options.backupPath + '/' + collection.id, '/')
         }, 1)
@@ -189,7 +189,7 @@ export class FirestoreBackup {
     const logPathWithCollection = logPath + collection.id
     if (this.excludeByPattern('/' + collection.path)) {
       console.log('Excluding Collection \'' + logPathWithCollection + '\' (/' + collection.path + ')')
-      return
+      return Promise.resolve()
     }
     console.log('Backing up Collection \'' + logPathWithCollection + '\'')
     try {
@@ -211,7 +211,7 @@ export class FirestoreBackup {
     const logPathWithDocument = logPath + document.id
     if (this.excludeByPattern('/' + document.ref.path)) {
       console.log('Excluding Document \'' + logPathWithDocument + '\' (/' + document.ref.path + ')')
-      return
+      return Promise.resolve()
     }
     console.log('Backing up Document \'' + logPathWithDocument + '\'')
     try {
