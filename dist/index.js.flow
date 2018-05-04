@@ -7,6 +7,8 @@ import mkdirp from 'mkdirp'
 
 import { FirestoreBackup } from './firestore'
 
+export { FirestoreBackup }
+
 export type BackupOptions = {|
   accountCredentials: string | Object,
   backupPath: string,
