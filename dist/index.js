@@ -55,4 +55,6 @@ var _firestore = require('./firestore');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+// Export FirestoreBackup so that this can be run programatically with a custom
+// firestore database.
 exports.FirestoreBackup = _firestore.FirestoreBackup;
