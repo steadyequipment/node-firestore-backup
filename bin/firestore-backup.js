@@ -25,7 +25,10 @@ var requestCountLimitParamKey = 'requestCountLimit'
 var requestCountLimitParamDescription = 'The maximum number of requests to be made in parallel.'
 
 var excludeParamKey = 'excludeCollections'
-var excludeParamDescription = 'Collection id(s) to exclude from backing up.'
+var excludeParamDescription = 'Top level collection id(s) to exclude from backing up.'
+
+var excludePatternParamKey = 'excludePattern'
+var excludePatternParamDescription = 'Documents and collections whose paths match the regex to exclude from backing up. Can be provided multiple times.'
 
 const collectAllValues = (addValue/*: string */, toValues/*: Array<string> */)/*: Array<string> */ => {
   toValues.push(addValue)
@@ -39,6 +42,7 @@ commander.version('2.2.0')
   .option('-S, --' + databaseStartPathParamKey + ' <path>', databaseStartPathParamDescription)
   .option('-L, --' + requestCountLimitParamKey + ' <number>', requestCountLimitParamDescription)
   .option('-E, --' + excludeParamKey + ' <path>', excludeParamDescription, collectAllValues, [])
+  .option('--' + excludePatternParamKey + ' <regex>', excludePatternParamDescription, collectAllValues, [])
   .parse(process.argv)
 
 const accountCredentialsPath = commander[accountCredentialsPathParamKey]
@@ -69,6 +73,8 @@ const requestCountLimit = parseInt(commander[requestCountLimitParamKey] || '1', 
 
 const exclude = commander[excludeParamKey] || []
 
+const excludePatterns = commander[excludePatternParamKey].map(pattern => new RegExp(pattern)) || []
+
 var firestoreBackup = require('../dist/index.js')
 try {
   console.time('backuptime')
@@ -78,7 +84,8 @@ try {
     backupPath,
     prettyPrintJSON,
     requestCountLimit,
-    exclude
+    exclude,
+    excludePatterns
   })
     .then(() => {
       console.log(colors.bold(colors.green('All done 💫')))

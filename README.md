@@ -72,14 +72,32 @@ Example:
 firestore-backup --accountCredentials path/to/credentials/file.json --backupPath /backups/myDatabase --requestCountLimit 2
 ```
 
-### Exclude collections from backup:
-* `-E`, `--excludeCollections` `<id>` - Collection id(s) to exclude from backing up.
+### Exclude top level collections from backup:
+* `-E`, `--excludeCollections` `<id>` - Top level collection id(s) to exclude from backing up.
 
 _Note_: because of how the command line parsing library works multiple collection ids must be specified as separate parameters.
 
 Example:
 ```sh
 firestore-backup --accountCredentials path/to/credentials/file.json --backupPath /backups/myDatabase --excludeCollections myFirstAnnoyingCollection --excludeCollections mySecondAnnoyingCollection
+```
+
+### Exclude paths by regex:
+* `--excludePattern` `<regex>` - Patterns to match against paths to exclude from the backup. All subpaths of matched paths will also be excluded.
+
+These patterns can support excluding several different sections of trees, e.g.:
+- Exclude top level collection: ^/collectionToIgnore
+- Exclude sub collections of all documents in a collection: ^/organizations/[^/]*/subcollectionToIgnore
+- Exclude sub collections at a given level: ^/[^/]*/[^/]*/subcollectionToIgnore
+- Exclude a particular document: ^/organizations/organizationToIgnore
+
+_Note_: when combining excludePattern with databaseStartPath, the patterns are tested against the full path of the document off the root of database (with a leading slash).
+
+_Note_: because of how the command line parsing library works multiple exclude patterns must be specified as separate parameters.
+
+Example:
+```sh
+firestore-backup --accountCredentials path/to/credentials/file.json --backupPath /backups/myDatabase --excludePattern '^/collectionToIgnore' --excludePattern '^/[^/]*/[^/]*/subcollectionToIgnore'
 ```
 
 ### Relax:

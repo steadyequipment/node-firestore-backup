@@ -119,7 +119,8 @@ export const constructDocumentValue = (documentDataToStore: Object = {}, keys: A
 const defaultBackupOptions = {
   databaseStartPath: '',
   requestCountLimit: 1,
-  exclude: []
+  exclude: [],
+  excludePatterns: []
 }
 
 export class FirestoreBackup {
@@ -141,7 +142,11 @@ export class FirestoreBackup {
       console.log('Using start path \'', this.options.databaseStartPath, '\'')
     }
     if (this.options.exclude && this.options.exclude.length > 0) {
-      console.log('Excluding ', this.options.exclude)
+      console.log('Excluding top level collections', this.options.exclude)
+    }
+
+    if (this.options.excludePatterns && this.options.excludePatterns.length > 0) {
+      console.log('Excluding patterns', this.options.excludePatterns)
     }
 
     if (isDocumentPath(this.options.databaseStartPath)) {
@@ -160,6 +165,14 @@ export class FirestoreBackup {
     return this.backupRootCollections()
   }
 
+  excludeByPattern(fullPath: string) {
+    if (this.options.excludePatterns) {
+      const matchedPattern = this.options.excludePatterns.find(pattern => pattern.test(fullPath))
+      return !!matchedPattern
+    }
+    return false
+  }
+
   backupRootCollections() {
     return this.options.database.getCollections()
       .then((collections) => {
@@ -173,7 +186,12 @@ export class FirestoreBackup {
   }
 
   backupCollection(collection: Object, backupPath: string, logPath: string) {
-    console.log('Backing up Collection \'' + logPath + collection.id + '\'')
+    const logPathWithCollection = logPath + collection.id
+    if (this.excludeByPattern('/' + collection.path)) {
+      console.log('Excluding Collection \'' + logPathWithCollection + '\' (/' + collection.path + ')')
+      return Promise.resolve()
+    }
+    console.log('Backing up Collection \'' + logPathWithCollection + '\'')
     try {
       mkdirp.sync(backupPath)
     } catch (error) {
@@ -184,13 +202,18 @@ export class FirestoreBackup {
       .then((documentSnapshots) => documentSnapshots.docs)
       .then((docs) => {
         return promiseParallel(docs, (document) => {
-          return this.backupDocument(document, backupPath + '/' + document.id, logPath + collection.id + '/')
+          return this.backupDocument(document, backupPath + '/' + document.id, logPathWithCollection + '/')
         }, this.options.requestCountLimit)
       })
   }
 
   backupDocument(document: Object, backupPath: string, logPath: string) {
-    console.log('Backing up Document \'' + logPath + document.id + '\'')
+    const logPathWithDocument = logPath + document.id
+    if (this.excludeByPattern('/' + document.ref.path)) {
+      console.log('Excluding Document \'' + logPathWithDocument + '\' (/' + document.ref.path + ')')
+      return Promise.resolve()
+    }
+    console.log('Backing up Document \'' + logPathWithDocument + '\'')
     try {
       mkdirp.sync(backupPath)
     } catch (error) {
@@ -220,7 +243,7 @@ export class FirestoreBackup {
     return document.ref.getCollections()
       .then((collections) => {
         return promiseParallel(collections, (collection) => {
-          return this.backupCollection(collection, backupPath + '/' + collection.id, logPath + document.id + '/')
+          return this.backupCollection(collection, backupPath + '/' + collection.id, logPathWithDocument + '/')
         }, this.documentRequestLimit)
       })
   }
