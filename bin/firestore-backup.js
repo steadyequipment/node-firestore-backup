@@ -35,7 +35,7 @@ const collectAllValues = (addValue/*: string */, toValues/*: Array<string> */)/*
   return toValues
 }
 
-commander.version('2.2.0')
+commander.version('2.3.0')
   .option('-a, --' + accountCredentialsPathParamKey + ' <path>', accountCredentialsPathParamDescription)
   .option('-B, --' + backupPathParamKey + ' <path>', backupPathParamDescription)
   .option('-P, --' + prettyPrintParamKey, prettyPrintParamDescription)
