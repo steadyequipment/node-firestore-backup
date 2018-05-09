@@ -124,6 +124,7 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
     _classCallCheck(this, FirestoreBackup);
 
     this.options = Object.assign({}, defaultBackupOptions, options);
+    this.fileWrite = options.fileWrite;
 
     if (this.options.requestCountLimit > 1) {
       this.documentRequestLimit = 3; // 3 is the max before diminishing returns
@@ -197,10 +198,12 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
         return Promise.resolve();
       }
       console.log('Backing up Collection \'' + logPathWithCollection + '\'');
-      try {
-        _mkdirp2.default.sync(backupPath);
-      } catch (error) {
-        throw new Error('Unable to create backup path for Collection \'' + collection.id + '\': ' + error);
+      if (!this.fileWrite) {
+        try {
+          _mkdirp2.default.sync(backupPath);
+        } catch (error) {
+          throw new Error('Unable to create backup path for Collection \'' + collection.id + '\': ' + error);
+        }
       }
 
       return collection.get().then(function (documentSnapshots) {
@@ -222,10 +225,12 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
         return Promise.resolve();
       }
       console.log('Backing up Document \'' + logPathWithDocument + '\'');
-      try {
-        _mkdirp2.default.sync(backupPath);
-      } catch (error) {
-        throw new Error('Unable to create backup path for Document \'' + document.id + '\': ' + error);
+      if (!this.fileWrite) {
+        try {
+          _mkdirp2.default.sync(backupPath);
+        } catch (error) {
+          throw new Error('Unable to create backup path for Document \'' + document.id + '\': ' + error);
+        }
       }
 
       var fileContents = void 0;
@@ -242,10 +247,14 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
       } catch (error) {
         throw new Error('Unable to serialize Document \'' + document.id + '\': ' + error);
       }
-      try {
-        _fs2.default.writeFileSync(backupPath + '/' + document.id + '.json', fileContents);
-      } catch (error) {
-        throw new Error('Unable to write Document \'' + document.id + '\': ' + error);
+      if (!this.fileWrite) {
+        try {
+          _fs2.default.writeFileSync(backupPath + '/' + document.id + '.json', fileContents);
+        } catch (error) {
+          throw new Error('Unable to write Document \'' + document.id + '\': ' + error);
+        }
+      } else {
+        this.fileWrite(backupPath + '/' + document.id, fileContents);
       }
 
       return document.ref.getCollections().then(function (collections) {
