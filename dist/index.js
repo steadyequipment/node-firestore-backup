@@ -28,10 +28,12 @@ exports.default = function (_options) {
     credential: _firebaseAdmin2.default.credential.cert(accountCredentialsContents)
   });
 
-  try {
-    _mkdirp2.default.sync(options.backupPath);
-  } catch (error) {
-    throw new Error('Unable to create backup path \'' + options.backupPath + '\': ' + error);
+  if (!options.fileWrite) {
+    try {
+      _mkdirp2.default.sync(options.backupPath);
+    } catch (error) {
+      throw new Error('Unable to create backup path \'' + options.backupPath + '\': ' + error);
+    }
   }
 
   options.database = _firebaseAdmin2.default.firestore();
