@@ -243,7 +243,7 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
         throw new Error('Unable to serialize Document \'' + document.id + '\': ' + error);
       }
       try {
-        _fs2.default.writeFileSync(backupPath + '/' + document.id + '.json', fileContents);
+        _fs2.default.writeFileSync(backupPath + '/' + document.id + '.json', fileContents+"\n");
       } catch (error) {
         throw new Error('Unable to write Document \'' + document.id + '\': ' + error);
       }
