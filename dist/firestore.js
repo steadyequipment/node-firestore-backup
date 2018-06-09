@@ -234,8 +234,8 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
         var keys = Object.keys(documentData);
         var documentDataToStore = {};
         documentDataToStore = Object.assign({}, constructDocumentValue(documentDataToStore, keys, documentData));
-        if (this.prettyPrintJSON === true) {
-          fileContents = (0, _jsonStableStringify2.default)(documentDataToStore, null, 2);
+        if (this.options.prettyPrintJSON === true) {
+          fileContents = (0, _jsonStableStringify2.default)(documentDataToStore, {space: 2});
         } else {
           fileContents = (0, _jsonStableStringify2.default)(documentDataToStore);
         }
