@@ -234,8 +234,8 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
         var keys = Object.keys(documentData);
         var documentDataToStore = {};
         documentDataToStore = Object.assign({}, constructDocumentValue(documentDataToStore, keys, documentData));
-        if (this.prettyPrintJSON === true) {
-          fileContents = (0, _jsonStableStringify2.default)(documentDataToStore, null, 2);
+        if (this.options.prettyPrintJSON === true) {
+          fileContents = (0, _jsonStableStringify2.default)(documentDataToStore, {space: 2});
         } else {
           fileContents = (0, _jsonStableStringify2.default)(documentDataToStore);
         }
@@ -243,7 +243,7 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
         throw new Error('Unable to serialize Document \'' + document.id + '\': ' + error);
       }
       try {
-        _fs2.default.writeFileSync(backupPath + '/' + document.id + '.json', fileContents);
+        _fs2.default.writeFileSync(backupPath + '/' + document.id + '.json', fileContents+"\n");
       } catch (error) {
         throw new Error('Unable to write Document \'' + document.id + '\': ' + error);
       }
