@@ -18,7 +18,8 @@ export type FirestoreBackupOptions = {|
   databaseStartPath: string,
   prettyPrintJSON: boolean,
   requestCountLimit: number,
-  exclude: Array<string>
+  exclude: Array<string>,
+  batchSize: number
 |}
 
 // Returns if a value is a string
