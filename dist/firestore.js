@@ -116,7 +116,8 @@ var defaultBackupOptions = {
   databaseStartPath: '',
   requestCountLimit: 1,
   exclude: [],
-  excludePatterns: []
+  excludePatterns: [],
+  batchSize: -1
 };
 
 var FirestoreBackup = exports.FirestoreBackup = function () {
@@ -189,8 +190,6 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
   }, {
     key: 'backupCollection',
     value: function backupCollection(collection, backupPath, logPath) {
-      var _this3 = this;
-
       var logPathWithCollection = logPath + collection.id;
       if (this.excludeByPattern('/' + collection.path)) {
         console.log('Excluding Collection \'' + logPathWithCollection + '\' (/' + collection.path + ')');
@@ -202,13 +201,30 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
       } catch (error) {
         throw new Error('Unable to create backup path for Collection \'' + collection.id + '\': ' + error);
       }
+      return this.batchCollection(collection, backupPath, logPathWithCollection, this.options.batchSize);
+    }
+  }, {
+    key: 'batchCollection',
+    value: function batchCollection(collection, backupPath, logPathWithCollection, batchSize, cursor) {
+      var _this3 = this;
 
-      return collection.get().then(function (documentSnapshots) {
+      var batchRequested = batchSize > 0;
+      var collectionQuery = cursor ? collection.startAfter(cursor) : collection;
+      if (batchRequested) {
+        collectionQuery = collectionQuery.limit(batchSize);
+      }
+      return collectionQuery.get().then(function (documentSnapshots) {
         return documentSnapshots.docs;
       }).then(function (docs) {
         return (0, _utility.promiseParallel)(docs, function (document) {
           return _this3.backupDocument(document, backupPath + '/' + document.id, logPathWithCollection + '/');
-        }, _this3.options.requestCountLimit);
+        }, _this3.options.requestCountLimit).then(function () {
+          if (batchRequested && docs.length === batchSize) {
+            return _this3.batchCollection(collection, backupPath, logPathWithCollection, batchSize, docs[docs.length - 1]);
+          } else {
+            return Promise.resolve();
+          }
+        });
       });
     }
   }, {
@@ -234,8 +250,8 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
         var keys = Object.keys(documentData);
         var documentDataToStore = {};
         documentDataToStore = Object.assign({}, constructDocumentValue(documentDataToStore, keys, documentData));
-        if (this.options.prettyPrintJSON === true) {
-          fileContents = (0, _jsonStableStringify2.default)(documentDataToStore, {space: 2});
+        if (this.prettyPrintJSON === true) {
+          fileContents = (0, _jsonStableStringify2.default)(documentDataToStore, null, 2);
         } else {
           fileContents = (0, _jsonStableStringify2.default)(documentDataToStore);
         }
@@ -243,7 +259,7 @@ var FirestoreBackup = exports.FirestoreBackup = function () {
         throw new Error('Unable to serialize Document \'' + document.id + '\': ' + error);
       }
       try {
-        _fs2.default.writeFileSync(backupPath + '/' + document.id + '.json', fileContents+"\n");
+        _fs2.default.writeFileSync(backupPath + '/' + document.id + '.json', fileContents);
       } catch (error) {
         throw new Error('Unable to write Document \'' + document.id + '\': ' + error);
       }

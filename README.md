@@ -100,6 +100,14 @@ Example:
 firestore-backup --accountCredentials path/to/credentials/file.json --backupPath /backups/myDatabase --excludePattern '^/collectionToIgnore' --excludePattern '^/[^/]*/[^/]*/subcollectionToIgnore'
 ```
 
+### Fetch documents in batches:
+* `--batchSize` `<number` - The maximum number of documents to fetch in a single request.
+
+Example:
+```sh
+firestore-backup --accountCredentials path/to/credentials/file.json --backupPath /backups/myDatabase --batchSize 25
+```
+
 ### Relax:
 That's it! ✨🌈
 
