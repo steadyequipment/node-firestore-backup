@@ -22,7 +22,9 @@
     "buildSource": "babel lib --out-dir dist",
     "buildFlow": "flow-copy-source lib dist",
     "build": "npm run buildSource; npm run buildFlow",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "npm run clean && npm run build",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "bin": "./bin/firestore-backup.js",
   "dependencies": {
@@ -33,7 +35,8 @@
     "commander": "^2.15.1",
     "firebase-admin": "^5.12.0",
     "json-stable-stringify": "^1.0.1",
-    "mkdirp": "^0.5.1"
+    "mkdirp": "^0.5.1",
+    "snyk": "^1.117.1"
   },
   "devDependencies": {
     "babel-eslint": "7",
@@ -43,5 +46,6 @@
     "flow-bin": "^0.61.0",
     "flow-copy-source": "^1.2.1",
     "standard": "^10.0.3"
-  }
+  },
+  "snyk": true
 }
