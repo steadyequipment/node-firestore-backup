@@ -27,11 +27,11 @@
   "bin": "./bin/firestore-backup.js",
   "dependencies": {
     "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.6.1",
+    "babel-preset-env": "^1.7.0",
     "babel-preset-flow": "^6.23.0",
     "colors": "^1.2.3",
     "commander": "^2.15.1",
-    "firebase-admin": "^5.12.0",
+    "firebase-admin": "^7.1.0",
     "json-stable-stringify": "^1.0.1",
     "mkdirp": "^0.5.1"
   },
