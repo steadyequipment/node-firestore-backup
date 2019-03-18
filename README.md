@@ -4,7 +4,9 @@ A Google Firebase Firestore backup tool.
 [![codebeat badge](https://codebeat.co/badges/febdaccc-2648-4a74-9596-57b00c3f7af8)](https://codebeat.co/projects/github-com-steadyequipment-node-firestore-backup-master)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/b7e94350eba84ec198f83c05c3a10bd0)](https://www.codacy.com/app/Steadyequipment/node-firestore-backup?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=steadyequipment/node-firestore-backup&amp;utm_campaign=Badge_Grade)
 [![David badge](https://david-dm.org/steadyequipment/node-firestore-backup.svg)](https://david-dm.org/steadyequipment/node-firestore-backup)
-[![Known Vulnerabilities](https://snyk.io/test/github/steadyequipment/node-firestore-backup/badge.svg)](https://snyk.io/test/github/steadyequipment/node-firestore-backup)
+
+# Note: Firebase now has an official backup and restore tool
+Read more about how to use it here: https://firebase.google.com/docs/firestore/manage-data/export-import
 
 
 ## Installation
