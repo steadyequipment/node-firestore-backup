@@ -47,7 +47,7 @@ This downloaded json file contains the proper credentials needed for __firestore
 
 Example:
 ```sh
-firestore-backup --accountCredentials path/to/credentials/file.json --backupPath /backups/myDatabase
+firestore-backup --accountCredentials path/to/credentials/file.json --backupPath /backups/myDatabase --requestCountLimit 50
 ```
 
 ### Backup with pretty printing:
